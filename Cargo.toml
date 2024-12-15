@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 regex = "1.11.1"
 scraper = "0.22.0"
+time = { version = "0.3.37", features = ["macros", "parsing"] }

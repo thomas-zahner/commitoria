@@ -1,6 +1,7 @@
 use fetch::{DataSource, Source};
 use regex::Regex;
 use scraper::{error::SelectorErrorKind, Html, Selector};
+use time::{format_description::BorrowedFormatItem, macros::format_description, Date};
 
 mod fetch;
 
@@ -14,7 +15,7 @@ pub struct ContributionActivity {
 #[derive(PartialEq, Eq, Debug)]
 pub struct DailyActivity {
     contribution_count: usize,
-    date: String, // todo: use chrono::Date
+    date: Date,
 }
 
 #[derive(Debug)]
@@ -36,6 +37,9 @@ pub trait GitProvider {
 }
 
 pub struct Github {}
+
+const GITHUB_DATE_DESCRIPTION: &'static [BorrowedFormatItem<'static>] =
+    format_description!("[year]-[month]-[day]");
 
 impl GitProvider for Github {
     fn fetch<S: DataSource>(data_source: S, user_name: String) -> Result<ContributionActivity> {
@@ -71,7 +75,7 @@ impl GitProvider for Github {
                 };
 
                 Ok(DailyActivity {
-                    date: date.into(),
+                    date: Date::parse(date, GITHUB_DATE_DESCRIPTION).unwrap(),
                     contribution_count,
                 })
             })
@@ -96,14 +100,14 @@ mod tests {
             result.activities[0],
             DailyActivity {
                 contribution_count: 0,
-                date: "2023-12-10".into()
+                date: Date::from_calendar_date(2023, time::Month::December, 10).unwrap(),
             }
         );
         assert_eq!(
             result.activities[23],
             DailyActivity {
                 contribution_count: 1,
-                date: "2024-05-19".into()
+                date: Date::from_calendar_date(2024, time::Month::May, 19).unwrap(),
             }
         );
     }

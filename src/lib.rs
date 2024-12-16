@@ -1,125 +1,54 @@
-use fetch::{DataSource, Source};
-use regex::Regex;
-use scraper::{error::SelectorErrorKind, Html, Selector};
-use time::{format_description::BorrowedFormatItem, macros::format_description, Date};
+use std::collections::HashMap;
+use time::Date;
 
-mod fetch;
-
-pub type Result<T> = core::result::Result<T, Error>;
+pub mod provider;
+pub mod source;
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct ContributionActivity {
-    activities: Vec<DailyActivity>,
-}
+pub struct ContributionActivity(HashMap<Date, usize>);
 
-#[derive(PartialEq, Eq, Debug)]
-pub struct DailyActivity {
-    contribution_count: usize,
-    date: Date,
-}
-
-#[derive(Debug)]
-pub enum Error {
-    SelectorError(String),
-    AttributeMissing,
-    TooltipMissing,
-    UnexpectedTooltipMessage(String),
-}
-
-impl From<SelectorErrorKind<'_>> for Error {
-    fn from(value: SelectorErrorKind<'_>) -> Self {
-        Self::SelectorError(value.to_string())
+impl ContributionActivity {
+    pub fn get(&self, date: &Date) -> Option<usize> {
+        self.0.get(date).map(|c| c.clone())
     }
-}
 
-pub trait GitProvider {
-    fn fetch<S: DataSource>(data_source: S, user_name: String) -> Result<ContributionActivity>;
-}
+    pub fn active_days(&self) -> usize {
+        self.0.len()
+    }
 
-pub struct Github {}
+    pub fn contribution_count(&self) -> usize {
+        self.0.iter().map(|(_, count)| count).sum()
+    }
 
-const GITHUB_DATE_DESCRIPTION: &'static [BorrowedFormatItem<'static>] =
-    format_description!("[year]-[month]-[day]");
-
-impl GitProvider for Github {
-    fn fetch<S: DataSource>(data_source: S, user_name: String) -> Result<ContributionActivity> {
-        let html = data_source.fetch(Source::GithubUser(user_name));
-        let document = Html::parse_document(&html);
-        let selector = Selector::parse("div > table > tbody td[data-date]")?;
-
-        let activities: Vec<DailyActivity> = document
-            .select(&selector)
-            .map(|element| {
-                let date = element.attr("data-date").ok_or(Error::AttributeMissing)?;
-                let id = element.attr("id").ok_or(Error::AttributeMissing)?;
-
-                let selector = Selector::parse(&format!(r#"tool-tip[for="{}"]"#, id))?;
-                let tool_tip_text = document
-                    .select(&selector)
-                    .next()
-                    .ok_or(Error::TooltipMissing)?
-                    .inner_html();
-
-                let contribution_count = if tool_tip_text.starts_with("No contributions") {
-                    0
-                } else {
-                    Regex::new("^(\\d+) contributions?")
-                        .unwrap()
-                        .captures(&tool_tip_text)
-                        .ok_or(Error::UnexpectedTooltipMessage(tool_tip_text.clone()))?
-                        .get(1)
-                        .ok_or(Error::UnexpectedTooltipMessage(tool_tip_text.clone()))?
-                        .as_str()
-                        .parse()
-                        .map_err(|_| Error::UnexpectedTooltipMessage(tool_tip_text))?
-                };
-
-                Ok(DailyActivity {
-                    date: Date::parse(date, GITHUB_DATE_DESCRIPTION).unwrap(),
-                    contribution_count,
+    pub fn combine(&mut self, other: Self) {
+        for (k, v) in other.0.into_iter() {
+            self.0
+                .entry(k)
+                .and_modify(|e| {
+                    *e += v;
                 })
-            })
-            .collect::<Result<_>>()?;
-
-        Ok(ContributionActivity { activities })
+                .or_insert(v);
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use fetch::LocalDataSource;
-
-    use super::*;
-
-    #[test]
-    fn github_contributions() {
-        let result = Github::fetch(LocalDataSource {}, "".into()).unwrap();
-
-        assert_eq!(result.activities.len(), 370);
-        assert_eq!(
-            result.activities[0],
-            DailyActivity {
-                contribution_count: 0,
-                date: Date::from_calendar_date(2023, time::Month::December, 10).unwrap(),
-            }
-        );
-        assert_eq!(
-            result.activities[23],
-            DailyActivity {
-                contribution_count: 1,
-                date: Date::from_calendar_date(2024, time::Month::May, 19).unwrap(),
-            }
-        );
-    }
+    use crate::ContributionActivity;
+    use std::collections::HashMap;
+    use time::Date;
 
     #[test]
-    fn github_contribution_sum() {
-        let result = Github::fetch(LocalDataSource {}, "".into()).unwrap();
-        let sum: usize = result
-            .activities
-            .into_iter()
-            .map(|a| a.contribution_count)
-            .sum();
-        assert_eq!(sum, 191);
+    fn aggregate() {
+        let first = Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
+        let second = Date::from_calendar_date(2024, time::Month::January, 2).unwrap();
+        let mut combined = ContributionActivity(HashMap::from([(first, 1), (second, 2)]));
+
+        combined.combine(ContributionActivity(HashMap::from([(first, 3)])));
+
+        assert_eq!(combined.get(&first), Some(4));
+        assert_eq!(combined.get(&second), Some(2));
+        let third = Date::from_calendar_date(2024, time::Month::January, 3).unwrap();
+        assert_eq!(combined.get(&third), None);
     }
 }

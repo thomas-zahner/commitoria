@@ -38,6 +38,7 @@
           pkgs.mkShell {
             packages = [
               pkgs.pkg-config
+              pkgs.openssl
               rust
             ];
           };

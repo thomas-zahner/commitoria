@@ -11,8 +11,11 @@ use super::{GitProvider, Result};
 pub struct Gitlab {}
 
 impl GitProvider for Gitlab {
-    fn fetch<S: DataSource>(data_source: S, user_name: String) -> Result<ContributionActivity> {
-        let json = data_source.fetch(Source::GitlabUser(user_name));
+    async fn fetch<S: DataSource>(
+        data_source: S,
+        user_name: String,
+    ) -> Result<ContributionActivity> {
+        let json = data_source.fetch(Source::GitlabUser(user_name)).await?;
         let parsed: HashMap<String, usize> =
             serde_json::from_str(&json).map_err(|e| Error::UnableToParseJson(e.to_string()))?;
 
@@ -30,11 +33,13 @@ impl GitProvider for Gitlab {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::source::LocalDataSource;
+    use crate::source::{FixtureDataSource, ReqwestDataSource};
 
-    #[test]
-    fn gitlab_contributions() {
-        let result = Gitlab::fetch(LocalDataSource {}, "".into()).unwrap();
+    #[tokio::test]
+    async fn contributions_fixture() {
+        let result = Gitlab::fetch(FixtureDataSource {}, "".into())
+            .await
+            .unwrap();
 
         assert_eq!(
             result.get(&Date::from_calendar_date(2024, time::Month::January, 22).unwrap()),
@@ -50,11 +55,18 @@ mod tests {
             result.get(&Date::from_calendar_date(2024, time::Month::January, 1).unwrap()),
             None
         );
+        assert_eq!(result.contribution_count(), 21);
     }
 
-    #[test]
-    fn gitlab_contribution_sum() {
-        let result = Gitlab::fetch(LocalDataSource {}, "".into()).unwrap();
-        assert_eq!(result.contribution_count(), 21);
+    #[tokio::test]
+    async fn contributions_real() {
+        let result = Gitlab::fetch(ReqwestDataSource {}, "thomas-zahner".into()).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn user_not_found() {
+        let result = Gitlab::fetch(ReqwestDataSource {}, "".into()).await;
+        assert_eq!(result, Result::Err(Error::UserNotFound));
     }
 }

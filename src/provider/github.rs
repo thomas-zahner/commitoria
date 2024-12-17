@@ -13,8 +13,11 @@ static GITHUB_CONTRIBUTION_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new("^(\\d+) contributions?").unwrap());
 
 impl GitProvider for Github {
-    fn fetch<S: DataSource>(data_source: S, user_name: String) -> Result<ContributionActivity> {
-        let html = data_source.fetch(Source::GithubUser(user_name));
+    async fn fetch<S: DataSource>(
+        data_source: S,
+        user_name: String,
+    ) -> Result<ContributionActivity> {
+        let html = data_source.fetch(Source::GithubUser(user_name)).await?;
         let document = Html::parse_document(&html);
         let selector = Selector::parse("div > table > tbody td[data-date]")?;
 
@@ -55,12 +58,14 @@ impl GitProvider for Github {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::source::LocalDataSource;
+    use crate::source::{FixtureDataSource, ReqwestDataSource};
     use time::Date;
 
-    #[test]
-    fn github_contributions() {
-        let result = Github::fetch(LocalDataSource {}, "".into()).unwrap();
+    #[tokio::test]
+    async fn contributions_fixture() {
+        let result = Github::fetch(FixtureDataSource {}, "".into())
+            .await
+            .unwrap();
 
         assert_eq!(result.active_days(), 370);
         assert_eq!(
@@ -71,11 +76,18 @@ mod tests {
             result.get(&Date::from_calendar_date(2024, time::Month::May, 19).unwrap()),
             Some(1)
         );
+        assert_eq!(result.contribution_count(), 191);
     }
 
-    #[test]
-    fn github_contribution_sum() {
-        let result = Github::fetch(LocalDataSource {}, "".into()).unwrap();
-        assert_eq!(result.contribution_count(), 191);
+    #[tokio::test]
+    async fn contributions_real() {
+        let result = Github::fetch(ReqwestDataSource {}, "mre".into()).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn user_not_found() {
+        let result = Github::fetch(ReqwestDataSource {}, "".into()).await;
+        assert_eq!(result, Result::Err(Error::UserNotFound));
     }
 }

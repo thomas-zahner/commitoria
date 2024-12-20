@@ -1,12 +1,16 @@
+# Commitoria
+
 A tool for aggregating and visualising contribution activity from multiple sources.
+The name "commitoria" is a blend of "commit" (from Git commits) and "oria",
+a suffix associated with places or collections (like in "territory" or "auditoria").
+
+# Data extraction
 
 Data sources:
 
 - GitHub
 - GitLab
-- Git repositories by URL
-
-# Data extraction
+- Git repositories by URL (not yet supported)
 
 ## Unauthenticated GitLab
 

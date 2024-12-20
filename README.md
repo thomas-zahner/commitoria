@@ -38,13 +38,9 @@ but this allows us to skip authentication.
 
 Approach:
 
-curl 'https://github.com/thomas-zahner?action=show&controller=profiles&from=2024-09-01&tab=contributions&to=2024-09-30&user_id=thomas-zahner' -H 'X-Requested-With: XMLHttpRequest'
+curl https://github.com/users/thomas-zahner/contributions
 
 Extract tooltip data with for="contribution-day-component-MOTH-DAY"
-
-EVEN BETTER!
-
-curl https://github.com/users/thomas-zahner/contributions
 
 # Visualisation
 

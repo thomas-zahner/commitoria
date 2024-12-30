@@ -118,8 +118,6 @@ const getLevelFromContributions = (count) => {
 class ActivityCalendar {
   constructor({
     container,
-    activitiesContainer,
-    recentActivitiesContainer,
     timestamps,
     utcOffset = 0,
     firstDayOfWeek = firstDayOfWeekChoices.sunday,
@@ -147,8 +145,6 @@ class ActivityCalendar {
     ];
     this.months = [];
     this.firstDayOfWeek = firstDayOfWeek;
-    this.activitiesContainer = activitiesContainer;
-    this.recentActivitiesContainer = recentActivitiesContainer;
     this.container = container;
     this.onClickDay = onClickDay;
 
@@ -342,32 +338,8 @@ class ActivityCalendar {
       // Add is-active class to the clicked cell
       // eslint-disable-next-line no-restricted-globals
       d3.select(event.currentTarget).classed("is-active", true);
-
-      $(this.activitiesContainer)
-        .empty()
-        .append(loadingIconForLegacyJS({ size: "lg" }));
-
-      $(this.recentActivitiesContainer).hide();
-
-      fetchData()
-        .then(({ data }) => {
-          $(this.activitiesContainer).html(data);
-          document
-            .querySelector(this.activitiesContainer)
-            .querySelectorAll(".js-localtime")
-            .forEach((el) => {
-              el.setAttribute("title", newDate(el.dataset.datetime));
-            });
-        })
-        .catch(() =>
-          createAlert({
-            message: "An error occurred while retrieving calendar activity",
-          }),
-        );
     } else {
       this.currentSelectedDate = "";
-      $(this.activitiesContainer).html("");
-      $(this.recentActivitiesContainer).show();
 
       // Remove is-active class from all other cells
       this.svg
@@ -378,11 +350,6 @@ class ActivityCalendar {
 }
 
 // -------------------------------------------
-
-function fetchData() {
-  const data = { "2024-01-22": 1, "2024-02-04": 2, "2024-02-14": 1 };
-  return Promise.resolve(data);
-}
 
 const CALENDAR_PERIOD_12_MONTHS = 12;
 
@@ -396,8 +363,6 @@ function renderActivityCalendar(data) {
   // eslint-disable-next-line no-new
   new ActivityCalendar({
     container: ".js-contrib-calendar",
-    activitiesContainer: ".user-calendar-activities",
-    recentActivitiesContainer: ".activities-block .user-activity-content",
     timestamps: data,
     CALENDAR_PERIOD_12_MONTHS,
   });

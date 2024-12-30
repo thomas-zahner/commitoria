@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+    <head>
+        <script defer src="calendar.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
+
+        <style>
+            :root {
+                --gray-50: #ececef;
+                --data-viz-blue-100: #d2dcff;
+                --data-viz-blue-400: #7992f5;
+                --data-viz-blue-600: #4e65cd;
+                --data-viz-blue-900: #303470;
+            }
+
+            .user-contrib-cell:hover,
+            .user-contrib-cell:focus,
+            .user-contrib-cell.is-active {
+                cursor: pointer;
+                outline: none;
+                stroke: var(--gl-text-color-default);
+            }
+            .user-contrib-cell:active,
+            .user-contrib-cell.is-active {
+                stroke-width: 2px;
+            }
+            .user-contrib-cell[data-level="0"] {
+                fill: var(--gray-50);
+            }
+            .user-contrib-cell[data-level="1"] {
+                fill: var(--data-viz-blue-100);
+            }
+            .user-contrib-cell[data-level="2"] {
+                fill: var(--data-viz-blue-400);
+            }
+            .user-contrib-cell[data-level="3"] {
+                fill: var(--data-viz-blue-600);
+            }
+            .user-contrib-cell[data-level="4"] {
+                fill: var(--data-viz-blue-900);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="activities-block">
+            <div class="gl-flex gl-items-baseline">
+                <h2 class="gl-heading-3 gl-grow !gl-mt-5 !gl-mb-3">Activity</h2>
+            </div>
+            <div
+                class="user-calendar gl-border light gl-rounded-base gl-px-3 gl-pt-4 gl-text-center"
+                data-calendar-activities-path="/users/seggenberger/calendar_activities"
+                data-calendar-path="/users/seggenberger/calendar.json"
+                data-utc-offset="3600"
+            >
+                <div class="calendar">
+                    <div class="js-contrib-calendar gl-overflow-x-auto"></div>
+                    <div
+                        class="calendar-help gl-flex gl-justify-between gl-ml-auto gl-mr-auto"
+                    >
+                        <div class="calendar-legend">
+                            <svg width="80px" height="20px">
+                                <g>
+                                    <rect
+                                        width="13"
+                                        height="13"
+                                        x="2"
+                                        y="2"
+                                        rx="2"
+                                        ry="2"
+                                        data-level="0"
+                                        class="user-contrib-cell has-tooltip contrib-legend"
+                                        title="No contributions"
+                                        data-container="body"
+                                    ></rect>
+                                    <rect
+                                        width="13"
+                                        height="13"
+                                        x="17"
+                                        y="2"
+                                        rx="2"
+                                        ry="2"
+                                        data-level="1"
+                                        class="user-contrib-cell has-tooltip contrib-legend"
+                                        title="1-9 contributions"
+                                        data-container="body"
+                                    ></rect>
+                                    <rect
+                                        width="13"
+                                        height="13"
+                                        x="32"
+                                        y="2"
+                                        rx="2"
+                                        ry="2"
+                                        data-level="2"
+                                        class="user-contrib-cell has-tooltip contrib-legend"
+                                        title="10-19 contributions"
+                                        data-container="body"
+                                    ></rect>
+                                    <rect
+                                        width="13"
+                                        height="13"
+                                        x="47"
+                                        y="2"
+                                        rx="2"
+                                        ry="2"
+                                        data-level="3"
+                                        class="user-contrib-cell has-tooltip contrib-legend"
+                                        title="20-29 contributions"
+                                        data-container="body"
+                                    ></rect>
+                                    <rect
+                                        width="13"
+                                        height="13"
+                                        x="62"
+                                        y="2"
+                                        rx="2"
+                                        ry="2"
+                                        data-level="4"
+                                        class="user-contrib-cell has-tooltip contrib-legend"
+                                        title="30+ contributions"
+                                        data-container="body"
+                                    ></rect>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="calendar-hint gl-text-sm gl-text-subtle">
+                            Issues, merge requests, pushes, and comments.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-calendar-activities"></div>
+            <div
+                class="overview-content-list user-activity-content gl-mb-5"
+                data-href="/users/seggenberger/activity"
+                data-testid="user-activity-content"
+            ></div>
+        </div>
+    </body>
+</html>

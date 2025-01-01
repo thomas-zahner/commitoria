@@ -122,7 +122,6 @@ class ActivityCalendar {
     utcOffset = 0,
     firstDayOfWeek = firstDayOfWeekChoices.sunday,
     monthsAgo = 12,
-    onClickDay,
   }) {
     this.clickDay = this.clickDay.bind(this);
     this.currentSelectedDate = "";
@@ -146,7 +145,6 @@ class ActivityCalendar {
     this.months = [];
     this.firstDayOfWeek = firstDayOfWeek;
     this.container = container;
-    this.onClickDay = onClickDay;
 
     // Loop through the timestamps to create a group of objects
     // The group of objects will be grouped based on the day of the week they are
@@ -256,7 +254,7 @@ class ActivityCalendar {
       .attr("data-testid", "user-contrib-cell")
       .attr("data-html", true)
       .attr("data-container", "body")
-      .on("click", this.clickDay);
+      .on("click", (_, stamp) => this.clickDay(stamp));
   }
 
   renderDayTitles() {
@@ -323,12 +321,6 @@ class ActivityCalendar {
         this.currentSelectedDate.getMonth() + 1,
         this.currentSelectedDate.getDate(),
       ].join("-");
-
-      if (this.onClickDay) {
-        this.onClickDay(date);
-
-        return;
-      }
 
       // Remove is-active class from all other cells
       this.svg

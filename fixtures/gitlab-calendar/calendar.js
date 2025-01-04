@@ -119,11 +119,11 @@ class ActivityCalendar {
   constructor({
     container,
     timestamps,
+    onClick: onClickDay = () => {},
     utcOffset = 0,
     firstDayOfWeek = firstDayOfWeekChoices.sunday,
     monthsAgo = 12,
   }) {
-    this.clickDay = this.clickDay.bind(this);
     this.currentSelectedDate = "";
     this.daySpace = 1;
     this.daySize = 14;
@@ -145,6 +145,7 @@ class ActivityCalendar {
     this.months = [];
     this.firstDayOfWeek = firstDayOfWeek;
     this.container = container;
+    this.onClickDay = onClickDay;
 
     // Loop through the timestamps to create a group of objects
     // The group of objects will be grouped based on the day of the week they are
@@ -315,12 +316,7 @@ class ActivityCalendar {
   clickDay(stamp) {
     if (this.currentSelectedDate !== stamp.date) {
       this.currentSelectedDate = stamp.date;
-
-      const date = [
-        this.currentSelectedDate.getFullYear(),
-        this.currentSelectedDate.getMonth() + 1,
-        this.currentSelectedDate.getDate(),
-      ].join("-");
+      this.onClickDay(toISODateFormat(this.currentSelectedDate));
 
       // Remove is-active class from all other cells
       this.svg
@@ -343,20 +339,15 @@ class ActivityCalendar {
 
 // -------------------------------------------
 
-const CALENDAR_PERIOD_12_MONTHS = 12;
-
 function renderActivityCalendar(data) {
   // const utcOffset = $calendarWrap.data("utcOffset");
   const calendarHint = "Issues, merge requests, pushes, and comments.";
 
-  // $calendarWrap.html(CALENDAR_TEMPLATE);
-  // $calendarWrap.find(".calendar-hint").text(calendarHint);
-
-  // eslint-disable-next-line no-new
   new ActivityCalendar({
     container: ".js-contrib-calendar",
     timestamps: data,
-    CALENDAR_PERIOD_12_MONTHS,
+    onClick: (date) =>
+      console.log(`${data[date] || 0} contributions on ${date}`),
   });
 
   // Scroll to end

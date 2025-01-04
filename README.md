@@ -48,4 +48,6 @@ Extract tooltip data with for="contribution-day-component-MOTH-DAY"
 
 # Visualisation
 
-TODO. Potential visualisation inspiration: https://github.com/Platane/snk
+https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/pages/users/activity_calendar.js
+
+TODO

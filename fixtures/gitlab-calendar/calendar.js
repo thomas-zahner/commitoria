@@ -255,7 +255,7 @@ class ActivityCalendar {
       .attr("data-testid", "user-contrib-cell")
       .attr("data-html", true)
       .attr("data-container", "body")
-      .on("click", (_, stamp) => this.clickDay(stamp));
+      .on("click", (element, stamp) => this.clickDay(element, stamp));
   }
 
   renderDayTitles() {
@@ -313,7 +313,7 @@ class ActivityCalendar {
       .text((date) => this.monthNames[date.month]);
   }
 
-  clickDay(stamp) {
+  clickDay(element, stamp) {
     if (this.currentSelectedDate !== stamp.date) {
       this.currentSelectedDate = stamp.date;
       this.onClickDay(toISODateFormat(this.currentSelectedDate));
@@ -324,8 +324,7 @@ class ActivityCalendar {
         .classed("is-active", false);
 
       // Add is-active class to the clicked cell
-      // eslint-disable-next-line no-restricted-globals
-      d3.select(event.currentTarget).classed("is-active", true);
+      element.currentTarget.classList.add("is-active");
     } else {
       this.currentSelectedDate = "";
 

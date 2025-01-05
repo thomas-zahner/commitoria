@@ -2,6 +2,9 @@ use scraper::error::SelectorErrorKind;
 use std::collections::HashMap;
 use time::Date;
 
+#[cfg(feature = "serde")]
+use serde::{ser::SerializeMap, Serialize, Serializer};
+
 pub mod provider;
 pub mod source;
 
@@ -33,6 +36,20 @@ impl From<reqwest::Error> for Error {
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct ContributionActivity(HashMap<Date, usize>);
+
+#[cfg(feature = "serde")]
+impl Serialize for ContributionActivity {
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(self.0.len()))?;
+        for (k, v) in &self.0 {
+            map.serialize_entry(&k.to_string(), &v)?;
+        }
+        map.end()
+    }
+}
 
 impl ContributionActivity {
     pub fn get(&self, date: &Date) -> Option<usize> {

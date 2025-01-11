@@ -3,7 +3,7 @@ use crate::{
     source::{DataSource, Source},
     ContributionActivity,
 };
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use time::Date;
 
 use super::{GitProvider, Result};
@@ -25,7 +25,7 @@ impl GitProvider for Gitlab {
                 .map(|(date, contribution_count)| -> Result<(Date, usize)> {
                     Ok((parse_date(&date)?, contribution_count))
                 })
-                .collect::<Result<HashMap<_, _>>>()?,
+                .collect::<Result<BTreeMap<_, _>>>()?,
         ))
     }
 }

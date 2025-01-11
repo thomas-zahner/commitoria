@@ -5,7 +5,7 @@ use crate::{
 };
 use regex::Regex;
 use scraper::{Html, Selector};
-use std::{collections::HashMap, sync::LazyLock};
+use std::{collections::BTreeMap, sync::LazyLock};
 
 pub struct Github {}
 
@@ -49,7 +49,7 @@ impl GitProvider for Github {
 
                 Ok((parse_date(date)?, contribution_count))
             })
-            .collect::<Result<HashMap<_, _>>>()?;
+            .collect::<Result<BTreeMap<_, _>>>()?;
 
         Ok(ContributionActivity(activities))
     }

@@ -1,6 +1,6 @@
 use scraper::error::SelectorErrorKind;
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     ops::{Add, AddAssign},
 };
 use time::Date;
@@ -38,7 +38,7 @@ impl From<reqwest::Error> for Error {
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub struct ContributionActivity(HashMap<Date, usize>);
+pub struct ContributionActivity(BTreeMap<Date, usize>);
 
 #[cfg(feature = "serde")]
 impl Serialize for ContributionActivity {
@@ -56,7 +56,7 @@ impl Serialize for ContributionActivity {
 
 impl ContributionActivity {
     pub fn new() -> Self {
-        Self(HashMap::new())
+        Self(BTreeMap::new())
     }
 
     pub fn get(&self, date: &Date) -> Option<usize> {
@@ -98,15 +98,15 @@ impl AddAssign for ContributionActivity {
 #[cfg(test)]
 mod tests {
     use crate::ContributionActivity;
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
     use time::Date;
 
     #[test]
     fn aggregate() {
         let first = Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
         let second = Date::from_calendar_date(2024, time::Month::January, 2).unwrap();
-        let activity = ContributionActivity(HashMap::from([(first, 1), (second, 2)]))
-            + ContributionActivity(HashMap::from([(first, 3)]));
+        let activity = ContributionActivity(BTreeMap::from([(first, 1), (second, 2)]))
+            + ContributionActivity(BTreeMap::from([(first, 3)]));
 
         assert_eq!(activity.get(&first), Some(4));
         assert_eq!(activity.get(&second), Some(2));

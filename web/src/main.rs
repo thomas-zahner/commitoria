@@ -1,5 +1,5 @@
 use axum::{extract::Query, http::StatusCode, routing::get, Json, Router};
-use commitoria_core::{
+use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
     ContributionActivity,

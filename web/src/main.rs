@@ -1,15 +1,33 @@
-use axum::{http::StatusCode, routing::get, Json, Router};
+use axum::{extract::Query, http::StatusCode, routing::get, Json, Router};
 use commitoria_core::{
-    provider::{github::Github, GitProvider},
+    provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
     ContributionActivity,
 };
+use serde::Deserialize;
 
-async fn get_calendar_data() -> Result<Json<ContributionActivity>, StatusCode> {
-    match Github::fetch(ReqwestDataSource {}, "mre".into()).await {
-        Ok(r) => Ok(Json(r)),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+#[derive(Deserialize)]
+struct Names {
+    github: Option<String>,
+    gitlab: Option<String>,
+}
+
+async fn get_calendar_data(names: Query<Names>) -> Result<Json<ContributionActivity>, StatusCode> {
+    let mut activity = ContributionActivity::new();
+
+    if let Some(name) = names.0.gitlab {
+        activity += Gitlab::fetch(ReqwestDataSource {}, name)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     }
+
+    if let Some(name) = names.0.github {
+        activity += Github::fetch(ReqwestDataSource {}, name)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    }
+
+    Ok(Json(activity))
 }
 
 #[tokio::main]

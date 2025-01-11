@@ -1852,6 +1852,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "commitoria-core",
+ "serde",
  "tokio",
 ]
 

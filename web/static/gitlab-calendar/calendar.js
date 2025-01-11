@@ -354,6 +354,15 @@ function renderActivityCalendar(data) {
   calendarContainer.scrollLeft = calendarContainer.scrollWidth;
 }
 
+async function fetchData() {
+  const result = await fetch(
+    "localhost:3000?gitlab=thomas-zahner&github=thomas-zahner",
+  );
+  debugger;
+}
+
+fetchData().catch((e) => console.error);
+
 renderActivityCalendar({
   "2024-05-11": 22,
   "2024-07-02": 9,

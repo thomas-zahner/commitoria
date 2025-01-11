@@ -1,5 +1,8 @@
 use scraper::error::SelectorErrorKind;
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    ops::{Add, AddAssign},
+};
 use time::Date;
 
 #[cfg(feature = "serde")]
@@ -34,7 +37,7 @@ impl From<reqwest::Error> for Error {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ContributionActivity(HashMap<Date, usize>);
 
 #[cfg(feature = "serde")]
@@ -52,6 +55,10 @@ impl Serialize for ContributionActivity {
 }
 
 impl ContributionActivity {
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+
     pub fn get(&self, date: &Date) -> Option<usize> {
         self.0.get(date).map(|c| c.clone())
     }
@@ -63,9 +70,13 @@ impl ContributionActivity {
     pub fn contribution_count(&self) -> usize {
         self.0.iter().map(|(_, count)| count).sum()
     }
+}
 
-    pub fn combine(&mut self, other: Self) {
-        for (k, v) in other.0.into_iter() {
+impl Add for ContributionActivity {
+    type Output = Self;
+
+    fn add(mut self, rhs: Self) -> Self::Output {
+        for (k, v) in rhs.0.into_iter() {
             self.0
                 .entry(k)
                 .and_modify(|e| {
@@ -73,6 +84,14 @@ impl ContributionActivity {
                 })
                 .or_insert(v);
         }
+
+        self
+    }
+}
+
+impl AddAssign for ContributionActivity {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = self.clone() + rhs;
     }
 }
 
@@ -86,9 +105,8 @@ mod tests {
     fn aggregate() {
         let first = Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
         let second = Date::from_calendar_date(2024, time::Month::January, 2).unwrap();
-        let mut activity = ContributionActivity(HashMap::from([(first, 1), (second, 2)]));
-
-        activity.combine(ContributionActivity(HashMap::from([(first, 3)])));
+        let activity = ContributionActivity(HashMap::from([(first, 1), (second, 2)]))
+            + ContributionActivity(HashMap::from([(first, 3)]));
 
         assert_eq!(activity.get(&first), Some(4));
         assert_eq!(activity.get(&second), Some(2));

@@ -355,17 +355,16 @@ function renderActivityCalendar(data) {
 }
 
 async function fetchData() {
-  const result = await fetch(
-    "localhost:3000?gitlab=thomas-zahner&github=thomas-zahner",
+  const response = await fetch(
+    "http://localhost:3000/api/calendar?gitlab=thomas-zahner&github=thomas-zahner",
   );
-  debugger;
+
+  if (!response.ok) {
+    throw new Error(`Response status: ${response.status}`);
+  }
+
+  const activity = await response.json();
+  renderActivityCalendar(activity);
 }
 
-fetchData().catch((e) => console.error);
-
-renderActivityCalendar({
-  "2024-05-11": 22,
-  "2024-07-02": 9,
-  "2024-10-24": 11,
-  "2024-12-15": 39,
-});
+fetchData().catch(console.error);

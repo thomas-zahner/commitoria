@@ -5,6 +5,7 @@ use commitoria_lib::{
     ContributionActivity,
 };
 use serde::Deserialize;
+use tower_http::services::ServeFile;
 
 #[derive(Deserialize)]
 struct Names {
@@ -32,7 +33,13 @@ async fn get_calendar_data(names: Query<Names>) -> Result<Json<ContributionActiv
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/", get(get_calendar_data));
+    let app = Router::new()
+        .route("/api/calendar", get(get_calendar_data))
+        .route_service("/", ServeFile::new("static/gitlab-calendar/calendar.html"))
+        .route_service(
+            "/calendar.js",
+            ServeFile::new("static/gitlab-calendar/calendar.js"),
+        );
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }

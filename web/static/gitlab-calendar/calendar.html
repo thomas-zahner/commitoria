@@ -67,9 +67,17 @@
             .activities-block {
                 text-align: center;
             }
+
+            #popup {
+                position: absolute;
+                display: none;
+                background: gold;
+            }
         </style>
     </head>
     <body>
+        <div id="popup">Popup fixed</div>
+
         <div class="activities-block">
             <h2>Activity</h2>
             <div class="user-calendar" data-utc-offset="3600">
@@ -88,7 +96,7 @@
                                         ry="2"
                                         data-level="0"
                                         class="user-contrib-cell has-tooltip contrib-legend"
-                                        title="No contributions"
+                                        data-hover-info='{"contribText":"No contributions"}'
                                         data-container="body"
                                     ></rect>
                                     <rect
@@ -100,7 +108,7 @@
                                         ry="2"
                                         data-level="1"
                                         class="user-contrib-cell has-tooltip contrib-legend"
-                                        title="1-9 contributions"
+                                        data-hover-info='{"contribText":"1-9 contributions"}'
                                         data-container="body"
                                     ></rect>
                                     <rect
@@ -112,7 +120,7 @@
                                         ry="2"
                                         data-level="2"
                                         class="user-contrib-cell has-tooltip contrib-legend"
-                                        title="10-19 contributions"
+                                        data-hover-info='{"contribText":"10-19 contributions"}'
                                         data-container="body"
                                     ></rect>
                                     <rect
@@ -124,7 +132,7 @@
                                         ry="2"
                                         data-level="3"
                                         class="user-contrib-cell has-tooltip contrib-legend"
-                                        title="20-29 contributions"
+                                        data-hover-info='{"contribText":"20-29 contributions"}'
                                         data-container="body"
                                     ></rect>
                                     <rect
@@ -136,7 +144,7 @@
                                         ry="2"
                                         data-level="4"
                                         class="user-contrib-cell has-tooltip contrib-legend"
-                                        title="30+ contributions"
+                                        data-hover-info='{"contribText":"30+ contributions"}'
                                         data-container="body"
                                     ></rect>
                                 </g>

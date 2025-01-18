@@ -93,14 +93,11 @@ function getSystemDate(systemUtcOffsetSeconds) {
 }
 
 function formatTooltipText({ date, count }) {
-  const dateDayName = getDayName(date);
-  const dateText = date.toString();
-
   let contribText = "No contributions";
   if (count > 0) {
     contribText = count + " contribution" + (count !== 1 ? "s" : "");
   }
-  return `${contribText}<br /><span class="gl-text-gray-300 dark:gl-text-gray-700">${dateDayName} ${dateText}</span>`;
+  return JSON.stringify({ contribText, date });
 }
 
 // Return the contribution level from the number of contributions
@@ -250,7 +247,7 @@ class ActivityCalendar {
       .attr("width", this.daySize)
       .attr("height", this.daySize)
       .attr("data-level", (stamp) => getLevelFromContributions(stamp.count))
-      .attr("title", (stamp) => formatTooltipText(stamp))
+      .attr("data-hover-info", (stamp) => formatTooltipText(stamp))
       .attr("class", "user-contrib-cell has-tooltip")
       .attr("data-testid", "user-contrib-cell")
       .attr("data-html", true)
@@ -368,3 +365,44 @@ async function fetchData() {
 }
 
 fetchData().catch(console.error);
+
+function showPopup(event, hoverInfo) {
+  const popup = document.querySelector("#popup");
+  Object.assign(popup.style, {
+    left: `${event.clientX + window.scrollX}px`,
+    top: `${event.clientY + window.scrollY}px`,
+    display: "block",
+  });
+
+  const { contribText, date: dateString } = JSON.parse(hoverInfo);
+  popup.textContent = contribText;
+
+  if (dateString) {
+    const date = new Date(dateString);
+    const dateDayName = getDayName(date);
+    popup.textContent += " " + dateDayName + " " + toISODateFormat(date);
+  }
+}
+
+function hidePopup() {
+  const popup = document.querySelector("#popup");
+  popup.style.display = "none";
+}
+
+function whenUserContribCell(event, then) {
+  const target = event.target;
+  const list = target.classList;
+
+  if (list.contains("user-contrib-cell") && list.contains("has-tooltip")) {
+    then();
+  }
+}
+
+addEventListener("mouseover", (event) => {
+  whenUserContribCell(event, () => {
+    const target = event.target;
+    showPopup(event, target.getAttribute("data-hover-info"));
+  });
+});
+
+addEventListener("mouseout", (event) => whenUserContribCell(event, hidePopup));

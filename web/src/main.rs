@@ -35,7 +35,11 @@ async fn get_calendar_data(names: Query<Names>) -> Result<Json<ContributionActiv
 async fn main() {
     let app = Router::new()
         .route("/api/calendar", get(get_calendar_data))
-        .route_service("/", ServeFile::new("static/gitlab-calendar/calendar.html"))
+        .route_service("/", ServeFile::new("static/gitlab-calendar/index.html"))
+        .route_service(
+            "/calendar",
+            ServeFile::new("static/gitlab-calendar/calendar.html"),
+        )
         .route_service(
             "/calendar.js",
             ServeFile::new("static/gitlab-calendar/calendar.js"),

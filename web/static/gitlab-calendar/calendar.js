@@ -351,10 +351,13 @@ function renderActivityCalendar(data) {
   calendarContainer.scrollLeft = calendarContainer.scrollWidth;
 }
 
-async function fetchData() {
-  const response = await fetch(
-    "http://localhost:3000/api/calendar?gitlab=thomas-zahner&github=thomas-zahner",
-  );
+async function fetchData({ gitlab, github }) {
+  const params = new URLSearchParams();
+
+  if (gitlab) params.append("gitlab", gitlab);
+  if (github) params.append("github", github);
+
+  const response = await fetch(`http://localhost:3000/api/calendar?${params}`);
 
   if (!response.ok) {
     throw new Error(`Response status: ${response.status}`);
@@ -363,8 +366,6 @@ async function fetchData() {
   const activity = await response.json();
   renderActivityCalendar(activity);
 }
-
-fetchData().catch(console.error);
 
 function showPopup(event, hoverInfo) {
   const popup = document.querySelector("#popup");
@@ -406,3 +407,8 @@ addEventListener("mouseover", (event) => {
 });
 
 addEventListener("mouseout", (event) => whenUserContribCell(event, hidePopup));
+
+const params = new URL(location).searchParams;
+fetchData({ gitlab: params.get("gitlab"), github: params.get("github") }).catch(
+  console.error,
+);

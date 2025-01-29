@@ -1,4 +1,36 @@
-<svg width="864" height="140" class="contrib-calendar" data-testid="contrib-calendar">
+<svg xmlns="http://www.w3.org/2000/svg" width="864" height="140" class="contrib-calendar" data-testid="contrib-calendar">
+    <style>
+        :root {
+            --user-activity-0: #ececef;
+            --user-activity-1: #d2dcff;
+            --user-activity-2: #7992f5;
+            --user-activity-3: #4e65cd;
+            --user-activity-4: #303470;
+            --text-color-default: #3a383f;
+            --border-color-default: #dcdcde;
+        }
+
+        .user-contrib-text {
+            font-size: 11px;
+        }
+
+        .user-contrib-cell[data-level="0"] {
+            fill: var(--user-activity-0);
+        }
+        .user-contrib-cell[data-level="1"] {
+            fill: var(--user-activity-1);
+        }
+        .user-contrib-cell[data-level="2"] {
+            fill: var(--user-activity-2);
+        }
+        .user-contrib-cell[data-level="3"] {
+            fill: var(--user-activity-3);
+        }
+        .user-contrib-cell[data-level="4"] {
+            fill: var(--user-activity-4);
+        }
+    </style>
+
     <g transform="translate(17, 18)" data-testid="user-contrib-cell-group">
         <rect x="0" y="16" rx="2" ry="2" width="14" height="14" data-level="0" data-hover-info="{&quot;contribText&quot;:&quot;No contributions&quot;,&quot;date&quot;:&quot;2024-01-28T23:00:00.000Z&quot;}" class="user-contrib-cell has-tooltip" data-testid="user-contrib-cell" data-html="true" data-container="body">
         </rect>

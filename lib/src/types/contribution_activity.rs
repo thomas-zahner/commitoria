@@ -7,7 +7,7 @@ use time::Date;
 #[cfg(feature = "serde")]
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::render::SvgRenderer;
+use crate::svg::SvgRenderer;
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ContributionActivity(BTreeMap<Date, usize>);
 
@@ -42,7 +42,7 @@ impl ContributionActivity {
         self.0.iter().map(|(_, count)| count).sum()
     }
 
-    pub fn render_as_gif(&self) -> String {
+    pub fn get_as_svg(&self) -> String {
         SvgRenderer::render(&self)
     }
 }

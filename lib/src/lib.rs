@@ -1,4 +1,4 @@
 pub mod provider;
-pub mod render;
 pub mod source;
+mod svg;
 pub mod types;

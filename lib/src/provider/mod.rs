@@ -1,4 +1,4 @@
-use crate::{source::DataSource, ContributionActivity, Error, Result};
+use crate::{source::DataSource, types::ContributionActivity, types::Error, types::Result};
 use std::future::Future;
 use time::{format_description::BorrowedFormatItem, macros::format_description, Date};
 

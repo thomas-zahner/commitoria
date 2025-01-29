@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use crate::{Error, Result};
+use crate::types::{Error, Result};
 
 pub enum Source {
     GithubUser(String),

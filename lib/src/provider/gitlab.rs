@@ -1,7 +1,7 @@
 use crate::{
     provider::{parse_date, Error},
     source::{DataSource, Source},
-    ContributionActivity,
+    types::ContributionActivity,
 };
 use std::collections::{BTreeMap, HashMap};
 use time::Date;
@@ -19,14 +19,13 @@ impl GitProvider for Gitlab {
         let parsed: HashMap<String, usize> =
             serde_json::from_str(&json).map_err(|e| Error::UnableToParseJson(e.to_string()))?;
 
-        Ok(ContributionActivity(
-            parsed
-                .into_iter()
-                .map(|(date, contribution_count)| -> Result<(Date, usize)> {
-                    Ok((parse_date(&date)?, contribution_count))
-                })
-                .collect::<Result<BTreeMap<_, _>>>()?,
-        ))
+        Ok(parsed
+            .into_iter()
+            .map(|(date, contribution_count)| -> Result<(Date, usize)> {
+                Ok((parse_date(&date)?, contribution_count))
+            })
+            .collect::<Result<BTreeMap<_, _>>>()?
+            .into())
     }
 }
 

@@ -1,7 +1,8 @@
-use super::{parse_date, Error, GitProvider, Result};
+use super::{parse_date, Error, GitProvider};
 use crate::{
     source::{DataSource, Source},
-    ContributionActivity,
+    types::ContributionActivity,
+    types::Result,
 };
 use regex::Regex;
 use scraper::{Html, Selector};
@@ -51,7 +52,7 @@ impl GitProvider for Github {
             })
             .collect::<Result<BTreeMap<_, _>>>()?;
 
-        Ok(ContributionActivity(activities))
+        Ok(activities.into())
     }
 }
 

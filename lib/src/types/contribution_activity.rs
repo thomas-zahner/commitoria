@@ -7,7 +7,6 @@ use time::Date;
 #[cfg(feature = "serde")]
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::svg::SvgRenderer;
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ContributionActivity(BTreeMap<Date, usize>);
 
@@ -40,10 +39,6 @@ impl ContributionActivity {
 
     pub fn contribution_count(&self) -> usize {
         self.0.iter().map(|(_, count)| count).sum()
-    }
-
-    pub fn get_as_svg(&self) -> String {
-        SvgRenderer::render(&self)
     }
 }
 

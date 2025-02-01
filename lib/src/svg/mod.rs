@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use chrono::{DateTime, Datelike, Days, Local, Months, TimeZone, Utc, Weekday};
 use time::{Date, Month, Time};
 
@@ -63,7 +65,7 @@ impl SvgRenderer {
             .unwrap();
 
         while day < last_day {
-            if day.weekday() == FIRST_DAY_OF_WEEK && group != 0 {
+            if day.weekday() == FIRST_DAY_OF_WEEK {
                 group += 1;
                 result.push(vec![]);
             }
@@ -81,19 +83,28 @@ impl SvgRenderer {
             day = day.checked_add_days(Days::new(1)).unwrap();
         }
 
-        dbg!(result);
-        Self::wrap_svg(activity)
+        let content = result.iter().enumerate().map(|(week, day_elements)| {
+            let x = DAY_SIZE_WITH_SPACE * week + 1 + DAY_SIZE_WITH_SPACE;
+            // todo: fill elements into the <g> element
+            dbg!(format!(
+                r#"<g transform="translate({}, 18)" data-testid="user-contrib-cell-group"></g>"#,
+                x
+            ))
+        }).collect::<Vec<_>>().join("\n");
+
+        Self::wrap_svg(activity, group, &content)
     }
 
-    fn wrap_svg(activity: &ContributionActivity) -> String {
-        const WIDTH: u16 = 864; // TODO: use group value to calculate
+    fn wrap_svg(activity: &ContributionActivity, width: usize, content: &str) -> String {
+        let width = (width + 1) * DAY_SIZE_WITH_SPACE; // TODO: handle extra padding case (getExtraWidthPadding)
         const HEIGHT: u16 = 140;
 
         format!(
             r#"<svg width="{}" height="{}" class="contrib-calendar" data-testid="contrib-calendar">
     {}
+    {}
 </svg>"#,
-            WIDTH, HEIGHT, STYLE
+            width, HEIGHT, STYLE, content
         )
     }
 }
@@ -117,7 +128,7 @@ mod tests {
         assert_eq!(
             &svg,
             &format!(
-                r#"<svg width="864" height="140" class="contrib-calendar" data-testid="contrib-calendar">
+                r#"<svg width="848" height="140" class="contrib-calendar" data-testid="contrib-calendar">
     {}
 </svg>"#,
                 STYLE

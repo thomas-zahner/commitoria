@@ -45,7 +45,6 @@ const DAY_SPACE: usize = 1;
 const DAY_SIZE: usize = 14;
 const DAY_SIZE_WITH_SPACE: usize = DAY_SIZE + DAY_SPACE * 2;
 const FIRST_DAY_OF_WEEK: Weekday = Weekday::Mon;
-const SVG_HEIGHT: usize = 140;
 
 const MONTH_NAMES: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -87,18 +86,16 @@ impl SvgRenderer {
         }
 
         let content = Self::render_week_rows(result);
-
-        let width = (group + 1) * DAY_SIZE_WITH_SPACE; // TODO: handle extra padding case (getExtraWidthPadding)
-        Self::wrap_svg(width, &content)
+        Self::wrap_svg(&content)
     }
 
-    fn wrap_svg(width: usize, content: &str) -> String {
+    fn wrap_svg(content: &str) -> String {
         format!(
-            r#"<svg xmlns="http://www.w3.org/2000/svg" width="{}" height="{}" class="contrib-calendar" data-testid="contrib-calendar">
+            r#"<svg xmlns="http://www.w3.org/2000/svg" class="contrib-calendar" data-testid="contrib-calendar">
     {}
     {}
 </svg>"#,
-            width, SVG_HEIGHT, STYLE, content
+            STYLE, content
         )
     }
 
@@ -146,14 +143,13 @@ impl SvgRenderer {
 
 #[cfg(test)]
 mod tests {
-    use time::Date;
-
     use super::SvgRenderer;
     use crate::{
         provider::{github::Github, GitProvider},
         source::FixtureDataSource,
         svg::{Data, STYLE},
     };
+    use time::Date;
 
     #[tokio::test]
     async fn basic() {
@@ -167,7 +163,7 @@ mod tests {
         assert_eq!(
             &svg,
             &format!(
-                r#"<svg width="848" height="140" class="contrib-calendar" data-testid="contrib-calendar">
+                r#"<svg class="contrib-calendar" data-testid="contrib-calendar">
     {}
 </svg>"#,
                 STYLE

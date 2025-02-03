@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use crate::svg::contribution_level::{ContributionLevel, GitlabContributionLevel};
 use crate::types::ContributionActivity;
 use chrono::{DateTime, Datelike, Days, Months, TimeZone, Weekday};
@@ -126,7 +128,12 @@ impl SvgRenderer {
 
         days.into_iter()
             .map(|day| {
-                let (data_level, hover_info )  = GitlabContributionLevel::get_contrib_level(day.count);
+                let data_level  = GitlabContributionLevel::get_contrib_level(day.count);
+                let hover_info = format!("{}", match day.count {
+                    0 => "No contributions".to_owned(),
+                    1 => "1 contribution".to_owned(),
+                    i => format!("{} contributions", i),
+                });
                 let y = DAY_SIZE_WITH_SPACE * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
 
@@ -188,7 +195,7 @@ mod tests {
                 date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 5).unwrap(),
             },
             Data {
-                count: 0,
+                count: 17,
                 date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 6).unwrap(),
             },
             Data {

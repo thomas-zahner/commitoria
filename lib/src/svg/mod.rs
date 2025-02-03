@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-
+use crate::svg::contribution_level::{ContributionLevel, GitlabContributionLevel};
+use crate::types::ContributionActivity;
 use chrono::{DateTime, Datelike, Days, Months, TimeZone, Weekday};
 use time::Date;
 
-use crate::types::ContributionActivity;
+mod contribution_level;
 
 pub struct SvgRenderer {}
 
@@ -65,6 +65,8 @@ impl SvgRenderer {
             .checked_sub_months(Months::new(12))
             .unwrap();
 
+        dbg!(&day);
+
         while day < last_day {
             if day.weekday() == FIRST_DAY_OF_WEEK {
                 group += 1;
@@ -120,43 +122,27 @@ impl SvgRenderer {
 
         days.into_iter()
             .map(|day| {
-                let (data_level, hover_info )  = Self::get_contrib_level(day.count);
+                let (data_level, hover_info )  = GitlabContributionLevel::get_contrib_level(day.count);
                 let y = DAY_SIZE_WITH_SPACE * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
+                let data_date = day.date.to_string();
 
-                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{CELL_SIZE}" height="{CELL_SIZE}" data-level="{data_level}" data-hover-info="{hover_info}" class="user-contrib-cell has-tooltip" data-testid="user-contrib-cell" data-html="true" data-container="body"></rect>"#)
+                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{CELL_SIZE}" height="{CELL_SIZE}" data-level="{data_level}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
             })
             .collect::<Vec<_>>()
             .join("\n")
-    }
-
-    fn get_contrib_level(count: usize) -> (usize, String) {
-        let contrib_levels = HashMap::from([
-            (30, (4, "30+ contributions".into())),
-            (20, (3, "20-29 contributions".into())),
-            (10, (2, "10-19 contributions".into())),
-            (1, (1, "1-9 contributions".into())),
-            (0usize, (0, "No contributions".into())),
-        ]);
-
-        contrib_levels
-            .into_iter()
-            .find(|(min, _)| count >= *min)
-            .unwrap()
-            .1
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
-
+    use super::SvgRenderer;
     use crate::{
         provider::{github::Github, GitProvider},
         source::FixtureDataSource,
         svg::STYLE,
     };
-
-    use super::SvgRenderer;
+    use std::fs;
+    use time::Date;
 
     #[tokio::test]
     async fn basic() {
@@ -164,10 +150,13 @@ mod tests {
             .await
             .unwrap();
 
+        assert_eq!(
+            Some(13),
+            activity.get(&Date::from_calendar_date(2024, time::Month::October, 4).unwrap()),
+        );
+
         let today = chrono::offset::Local::now();
         let svg = SvgRenderer::render(&activity, today);
-
-        fs::write("/tmp/activity.svg", &svg).unwrap(); // todo: remove
 
         assert_eq!(
             &svg,

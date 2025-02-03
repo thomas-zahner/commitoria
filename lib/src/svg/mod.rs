@@ -55,7 +55,12 @@ struct Data {
 }
 
 impl SvgRenderer {
-    pub fn render(activity: &ContributionActivity, last_day: NaiveDate) -> String {
+    pub fn render(activity: &ContributionActivity) -> String {
+        let today = chrono::Local::now().date_naive();
+        Self::render_at(activity, today)
+    }
+
+    fn render_at(activity: &ContributionActivity, last_day: NaiveDate) -> String {
         let mut group = 0;
         let mut result: Vec<Vec<Data>> = vec![vec![]]; // todo: functional instead of this weird imperative style
 
@@ -163,7 +168,7 @@ mod tests {
 
         let today = chrono::naive::NaiveDate::from_ymd_opt(2024, 12, 13).unwrap();
 
-        let svg = SvgRenderer::render(&activity, today);
+        let svg = SvgRenderer::render_at(&activity, today);
         let fixture = read_fixture("fixtures/activity.svg");
         assert_eq!(svg, fixture.trim());
     }

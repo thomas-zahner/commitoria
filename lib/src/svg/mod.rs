@@ -84,7 +84,7 @@ impl SvgRenderer {
             day = day.checked_add_days(Days::new(1)).unwrap();
         }
 
-        let content = Self::render_month_rows(result);
+        let content = Self::render_week_rows(result);
 
         let width = (group + 1) * DAY_SIZE_WITH_SPACE; // TODO: handle extra padding case (getExtraWidthPadding)
         Self::wrap_svg(width, &content)
@@ -100,7 +100,7 @@ impl SvgRenderer {
         )
     }
 
-    fn render_month_rows(result: Vec<Vec<Data>>) -> String {
+    fn render_week_rows(result: Vec<Vec<Data>>) -> String {
         let content = result
             .into_iter()
             .enumerate()
@@ -201,7 +201,7 @@ mod tests {
             },
         ]];
 
-        let svg = SvgRenderer::render_month_rows(data);
+        let svg = SvgRenderer::render_week_rows(data);
         let fixture =
             std::fs::read_to_string("fixtures/week_group.svg").expect("Unable to read file");
         assert_eq!(svg, fixture.trim());

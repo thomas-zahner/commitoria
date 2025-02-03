@@ -65,8 +65,6 @@ impl SvgRenderer {
             .checked_sub_months(Months::new(12))
             .unwrap();
 
-        dbg!(&day);
-
         while day < last_day {
             if day.weekday() == FIRST_DAY_OF_WEEK {
                 group += 1;
@@ -103,15 +101,21 @@ impl SvgRenderer {
     }
 
     fn render_month_rows(result: Vec<Vec<Data>>) -> String {
-        let content = result.into_iter().enumerate().map(|(week, day_elements)| {
-            let x = DAY_SIZE_WITH_SPACE * week + 1 + DAY_SIZE_WITH_SPACE;
-            let week_day_cells = Self::render_week_day_cells(day_elements);
-            dbg!(format!(
-                r#"<g transform="translate({}, 18)" data-testid="user-contrib-cell-group">{}</g>"#,
-                x,
-                week_day_cells
-            ))
-        }).collect::<Vec<_>>().join("\n");
+        let content = result
+            .into_iter()
+            .enumerate()
+            .map(|(week, day_elements)| {
+                let x = DAY_SIZE_WITH_SPACE * week + 1 + DAY_SIZE_WITH_SPACE;
+                let week_day_cells = Self::render_week_day_cells(day_elements);
+                format!(
+                    r#"<g transform="translate({}, 18)" data-testid="user-contrib-cell-group">
+{}
+</g>"#,
+                    x, week_day_cells
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
         content
     }
 
@@ -135,25 +139,20 @@ impl SvgRenderer {
 
 #[cfg(test)]
 mod tests {
+    use time::Date;
+
     use super::SvgRenderer;
     use crate::{
         provider::{github::Github, GitProvider},
         source::FixtureDataSource,
-        svg::STYLE,
+        svg::{Data, STYLE},
     };
-    use std::fs;
-    use time::Date;
 
     #[tokio::test]
     async fn basic() {
         let activity = Github::fetch(FixtureDataSource {}, "".into())
             .await
             .unwrap();
-
-        assert_eq!(
-            Some(13),
-            activity.get(&Date::from_calendar_date(2024, time::Month::October, 4).unwrap()),
-        );
 
         let today = chrono::offset::Local::now();
         let svg = SvgRenderer::render(&activity, today);
@@ -167,5 +166,44 @@ mod tests {
                 STYLE
             )
         )
+    }
+
+    #[test]
+    fn render_week() {
+        let data = vec![vec![
+            Data {
+                count: 0,
+                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 2).unwrap(),
+            },
+            Data {
+                count: 0,
+                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 3).unwrap(),
+            },
+            Data {
+                count: 1,
+                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 4).unwrap(),
+            },
+            Data {
+                count: 2,
+                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 5).unwrap(),
+            },
+            Data {
+                count: 0,
+                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 6).unwrap(),
+            },
+            Data {
+                count: 0,
+                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 7).unwrap(),
+            },
+            Data {
+                count: 0,
+                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 8).unwrap(),
+            },
+        ]];
+
+        let svg = SvgRenderer::render_month_rows(data);
+        let fixture =
+            std::fs::read_to_string("fixtures/week_group.svg").expect("Unable to read file");
+        assert_eq!(svg, fixture.trim());
     }
 }

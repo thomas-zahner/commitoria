@@ -1,8 +1,6 @@
-use std::fmt::format;
-
 use crate::svg::contribution_level::{ContributionLevel, GitlabContributionLevel};
 use crate::types::ContributionActivity;
-use chrono::{DateTime, Datelike, Days, Months, TimeZone, Weekday};
+use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use time::Date;
 
 mod contribution_level;
@@ -57,7 +55,7 @@ struct Data {
 }
 
 impl SvgRenderer {
-    pub fn render<T: TimeZone>(activity: &ContributionActivity, last_day: DateTime<T>) -> String {
+    pub fn render(activity: &ContributionActivity, last_day: NaiveDate) -> String {
         let mut group = 0;
         let mut result: Vec<Vec<Data>> = vec![vec![]]; // todo: functional instead of this weird imperative style
 
@@ -147,7 +145,7 @@ mod tests {
     use crate::{
         provider::{github::Github, GitProvider},
         source::FixtureDataSource,
-        svg::{Data, STYLE},
+        svg::Data,
     };
     use time::Date;
 
@@ -157,18 +155,11 @@ mod tests {
             .await
             .unwrap();
 
-        let today = chrono::offset::Local::now();
-        let svg = SvgRenderer::render(&activity, today);
+        let today = chrono::naive::NaiveDate::from_ymd_opt(2024, 12, 13).unwrap();
 
-        assert_eq!(
-            &svg,
-            &format!(
-                r#"<svg class="contrib-calendar" data-testid="contrib-calendar">
-    {}
-</svg>"#,
-                STYLE
-            )
-        )
+        let svg = SvgRenderer::render(&activity, today);
+        let fixture = read_fixture("fixtures/activity.svg");
+        assert_eq!(svg, fixture.trim());
     }
 
     #[test]
@@ -205,8 +196,11 @@ mod tests {
         ]];
 
         let svg = SvgRenderer::render_week_rows(data);
-        let fixture =
-            std::fs::read_to_string("fixtures/week_group.svg").expect("Unable to read file");
+        let fixture = read_fixture("fixtures/week_group.svg");
         assert_eq!(svg, fixture.trim());
+    }
+
+    fn read_fixture(path: &str) -> String {
+        std::fs::read_to_string(path).expect("Unable to read file")
     }
 }

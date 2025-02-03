@@ -83,7 +83,7 @@ impl SvgRenderer {
             day = day.checked_add_days(Days::new(1)).unwrap();
         }
 
-        let content = Self::render_week_rows(result);
+        let content = Self::render_week_rows(result) + "\n" + &Self::render_text();
         Self::wrap_svg(&content)
     }
 
@@ -136,6 +136,12 @@ impl SvgRenderer {
             })
             .collect::<Vec<_>>()
             .join("\n")
+    }
+
+    fn render_text() -> String {
+        let month_text = ""; // todo
+        let weekday_text = ""; // todo
+        month_text.to_owned() + weekday_text
     }
 }
 

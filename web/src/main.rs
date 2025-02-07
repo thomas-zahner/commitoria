@@ -1,6 +1,6 @@
 use axum::{
     extract::Query,
-    http::{HeaderMap, StatusCode},
+    http::{HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
     routing::get,
     Json, Router,
@@ -46,7 +46,7 @@ async fn get_calendar_data_json(
 
 async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, StatusCode> {
     let mut headers = HeaderMap::new();
-    headers.insert("Content-Type", "image/svg+xml".parse().unwrap());
+    headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
     let activity = get_calendar_data(names);
     Ok((headers, SvgRenderer::render(&activity.await?)))
 }

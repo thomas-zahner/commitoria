@@ -1,4 +1,10 @@
-use axum::{extract::Query, http::StatusCode, routing::get, Json, Router};
+use axum::{
+    extract::Query,
+    http::{HeaderMap, StatusCode},
+    response::IntoResponse,
+    routing::get,
+    Json, Router,
+};
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
@@ -38,9 +44,11 @@ async fn get_calendar_data_json(
     get_calendar_data(names).await.map(|v| Json(v))
 }
 
-async fn get_calendar_svg(names: Query<Names>) -> Result<String, StatusCode> {
+async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, StatusCode> {
+    let mut headers = HeaderMap::new();
+    headers.insert("Content-Type", "image/svg+xml".parse().unwrap());
     let activity = get_calendar_data(names);
-    Ok(SvgRenderer::render(&activity.await?))
+    Ok((headers, SvgRenderer::render(&activity.await?)))
 }
 
 #[tokio::main]

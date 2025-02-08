@@ -7,23 +7,9 @@
         <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
 
         <style>
-            :root {
-                --user-activity-0: #ececef;
-                --user-activity-1: #d2dcff;
-                --user-activity-2: #7992f5;
-                --user-activity-3: #4e65cd;
-                --user-activity-4: #303470;
-                --text-color-default: #3a383f;
-                --border-color-default: #dcdcde;
-            }
-
             body {
                 font-family: "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell,
                     "Helvetica Neue", sans-serif;
-            }
-
-            .user-contrib-text {
-                font-size: 11px;
             }
 
             .user-contrib-cell:hover,
@@ -35,21 +21,6 @@
             }
             .user-contrib-cell.is-active {
                 stroke-width: 2px;
-            }
-            .user-contrib-cell[data-level="0"] {
-                fill: var(--user-activity-0);
-            }
-            .user-contrib-cell[data-level="1"] {
-                fill: var(--user-activity-1);
-            }
-            .user-contrib-cell[data-level="2"] {
-                fill: var(--user-activity-2);
-            }
-            .user-contrib-cell[data-level="3"] {
-                fill: var(--user-activity-3);
-            }
-            .user-contrib-cell[data-level="4"] {
-                fill: var(--user-activity-4);
             }
 
             .user-calendar {
@@ -78,7 +49,7 @@
         </style>
     </head>
     <body>
-        <div id="popup">Popup fixed</div>
+        <div id="popup"></div>
 
         <div class="activities-block">
             <h2>Activity</h2>

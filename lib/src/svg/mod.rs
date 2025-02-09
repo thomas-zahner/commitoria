@@ -95,7 +95,7 @@ impl SvgRenderer {
             .checked_sub_months(Months::new(12))
             .unwrap();
 
-        while day < last_day {
+        while day <= last_day {
             if day.weekday() == FIRST_DAY_OF_WEEK {
                 group += 1;
                 result.push(vec![]);

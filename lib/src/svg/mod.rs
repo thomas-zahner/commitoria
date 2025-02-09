@@ -182,17 +182,14 @@ impl SvgRenderer {
     }
 
     fn render_text(months: Vec<MonthText>) -> String {
-        let month_text = format!(
+        format!(
             r#"<g direction="ltr">{}</g>"#,
             months
                 .iter()
                 .map(|month| month.render())
                 .collect::<Vec<_>>()
                 .join("\n")
-        );
-
-        let weekday_text = ""; // todo
-        month_text.to_owned() + weekday_text
+        )
     }
 }
 

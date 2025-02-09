@@ -46,7 +46,10 @@ function whenUserContribCell(event, then) {
 addEventListener("mouseover", (event) => {
   whenUserContribCell(event, () => {
     const target = event.target;
-    const textContent = target.getAttribute("data-hover-info");
+    const textContent =
+      target.getAttribute("data-hover-info") +
+      " on " +
+      target.getAttribute("data-date");
     showPopup(event, textContent);
   });
 });

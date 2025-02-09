@@ -55,6 +55,29 @@ struct Data {
     date: Date,
 }
 
+struct MonthText {
+    group: usize,
+    month: u32,
+}
+
+impl MonthText {
+    fn get_text(&self) -> String {
+        MONTH_NAMES[self.month as usize].to_owned()
+    }
+
+    fn render(&self) -> String {
+        let x = DAY_SIZE_WITH_SPACE * self.group + 1 + DAY_SIZE_WITH_SPACE;
+        const Y: usize = 10;
+
+        format!(
+            r#"<text x="{}" y="{}" class="user-contrib-text">{}</text>"#,
+            x,
+            Y,
+            self.get_text()
+        )
+    }
+}
+
 impl SvgRenderer {
     pub fn render(activity: &ContributionActivity) -> String {
         let today = chrono::Local::now().date_naive();
@@ -64,6 +87,7 @@ impl SvgRenderer {
     fn render_at(activity: &ContributionActivity, last_day: NaiveDate) -> String {
         let mut group = 0;
         let mut result: Vec<Vec<Data>> = vec![vec![]]; // todo: functional instead of this weird imperative style
+        let mut months: Vec<MonthText> = vec![];
 
         let mut day = last_day
             .clone()
@@ -74,6 +98,16 @@ impl SvgRenderer {
             if day.weekday() == FIRST_DAY_OF_WEEK {
                 group += 1;
                 result.push(vec![]);
+
+                let month = day.month0();
+                let is_new_month = match months.last() {
+                    None => true,
+                    Some(last_month) => month != last_month.month,
+                };
+
+                if is_new_month {
+                    months.push(MonthText { group, month });
+                }
             }
 
             let date = Date::from_calendar_date(
@@ -89,7 +123,7 @@ impl SvgRenderer {
             day = day.checked_add_days(Days::new(1)).unwrap();
         }
 
-        let content = Self::render_week_rows(result) + "\n" + &Self::render_text();
+        let content = Self::render_week_rows(result) + "\n" + &Self::render_text(months);
 
         let width = (group + 2) * DAY_SIZE_WITH_SPACE;
         Self::wrap_svg(width, &content)
@@ -146,8 +180,16 @@ impl SvgRenderer {
             .join("\n")
     }
 
-    fn render_text() -> String {
-        let month_text = ""; // todo
+    fn render_text(months: Vec<MonthText>) -> String {
+        let month_text = format!(
+            r#"<g direction="ltr">{}</g>"#,
+            months
+                .iter()
+                .map(|month| month.render())
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+
         let weekday_text = ""; // todo
         month_text.to_owned() + weekday_text
     }

@@ -43,7 +43,8 @@ const DAY_SPACE: usize = 1;
 const DAY_SIZE: usize = 14;
 const DAY_SIZE_WITH_SPACE: usize = DAY_SIZE + DAY_SPACE * 2;
 const FIRST_DAY_OF_WEEK: Weekday = Weekday::Mon;
-const SVG_HEIGHT: usize = 140;
+const HEIGHT: usize = 140;
+const WIDTH_EXTRA_PADDING: usize = 6;
 
 const MONTH_NAMES: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -125,7 +126,7 @@ impl SvgRenderer {
 
         let content = Self::render_week_rows(result) + "\n" + &Self::render_text(months);
 
-        let width = (group + 2) * DAY_SIZE_WITH_SPACE;
+        let width = (group + 2) * DAY_SIZE_WITH_SPACE + WIDTH_EXTRA_PADDING;
         Self::wrap_svg(width, &content)
     }
 
@@ -135,7 +136,7 @@ impl SvgRenderer {
     {}
     {}
 </svg>"#,
-            width, SVG_HEIGHT, STYLE, content
+            width, HEIGHT, STYLE, content
         )
     }
 
@@ -207,7 +208,7 @@ mod tests {
     };
 
     #[tokio::test]
-    async fn basic() {
+    async fn render_full() {
         let activity = Github::fetch(FixtureDataSource {}, "".into())
             .await
             .unwrap();

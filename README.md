@@ -7,10 +7,10 @@ A tool for aggregating and visualising contribution activity from multiple sourc
 GitHub, GitLab, Bitbucket, Gitea, Forgejo, ...
 The list of hosting solutions for your Git repositories seems endless.
 It's hard to chose the right platform which is why most people use multiple platforms.
-Maybe you host or use some repositories with bare Git - no fancy frontend needed?
+You don't always need a fancy frontend, you might host or use some repositories with bare Git.
 
-One thing all those fancy hosting solutions have in common is a way to visualise your contribution activity.
-But this visualisation is always limited to their specific platform.
+One thing all the fancy hosting solutions have in common is a way to visualise your contribution activity.
+But this visualisation is always limited to the specific platform.
 Commitoria enables aggregation and visualisation across multiple platforms,
 allowing you to see the bigger picture.
 A picture that is closer to reality.
@@ -18,7 +18,7 @@ A picture that is closer to reality.
 ## State
 
 Currently, GitHub and GitLab (gitlab.com) are supported as data sources.
-The goal is to support other hosting solutions as well.
+The goal is to support more hosting solutions and custom domains.
 Bare Git repositories are also not yet supported.
 
 As of now, everything that is aggregated is the contribution count per day.

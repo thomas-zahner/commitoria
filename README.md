@@ -2,6 +2,8 @@
 
 A tool for aggregating and visualising contribution activity from multiple sources.
 
+Warning: this project is in a very early stage. The code is sparsely documented and subject to change.
+
 ## Why?
 
 GitHub, GitLab, Bitbucket, Gitea, Forgejo, ...

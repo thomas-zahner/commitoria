@@ -22,10 +22,22 @@ The goal is to support more hosting solutions and custom domains.
 Bare Git repositories are also not yet supported.
 
 As of now, everything that is aggregated is the contribution count per day.
-This data is visualised as an activity calendar (also called contribution graph),
-mainly inspired by [GitLab's calendar](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/pages/users/activity_calendar.js).
+This data is visualised as an activity calendar (also called contribution graph).
 
 In the future we might want to aggregate and visualise additional activites, such as pull/merge requests.
+
+## Visualisation
+
+The visualisation is rewrite of [GitLab's calendar](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/pages/users/activity_calendar.js)
+into Rust.
+The calendar is rendered as an SVG, which makes it a portable, standalone component.
+The rewrite into Rust allows the SVG for example to be rendered by a web server.
+
+## Web
+
+It can make sense to provide this data aggregation and visualisation as a service.
+This is what has been done in the [web direcotry](./web).
+The library functions are exposed as a HTTP web server so users can utilise the library with REST API calls.
 
 ## Data aggregation
 

@@ -28,7 +28,8 @@ In the future we might want to aggregate and visualise additional activites, suc
 
 ## Visualisation
 
-The visualisation is rewrite of [GitLab's calendar](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/pages/users/activity_calendar.js)
+The visualisation is roughly a rewrite of
+[GitLab's calendar](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/pages/users/activity_calendar.js)
 into Rust.
 The calendar is rendered as an SVG, which makes it a portable, standalone component.
 The rewrite into Rust allows the SVG for example to be rendered by a web server.
@@ -43,21 +44,11 @@ The library functions are exposed as a HTTP web server so users can utilise the 
 
 ### Unauthenticated GitLab
 
-GET https://gitlab.com/users/thomas-zahner/calendar.json
+GitLab provides a neat and simple REST API endpoint returning the activity as JSON object.
+See [gitlab.rs](./lib/src/provider/gitlab.rs) for the implementation.
 
-```json
-{
-    "2023-10-06":2,
-    "2023-10-13":1,
-    "2024-04-24":1,
-    "2024-09-17":8,
-    "2024-09-22":1
-}
-```
-
-GET https://gitlab.com/users/thomas-zahner/calendar_activities?date=2023-11-10
-
-Gives HTML of recent activities.
+In the future we might want to incorporate the following endpoint to aggregate and visualise additional data:
+`GET https://gitlab.com/users/thomas-zahner/calendar_activities?date=2023-11-10`
 
 ### Unauthenticated GitHub
 
@@ -68,3 +59,5 @@ However, users might want to be able to skip authentication if possible.
 This is why we'll be using the contribution calendar graph directly, which is publicly disaplyed on all profiles (unless disabled).
 Using this approach is "hacky" because we need to extract data from an undocumented endpoint which might change without notice in the future,
 but this allows us to skip authentication.
+
+See [github.rs](./lib/src/provider/github.rs) for the implementation.

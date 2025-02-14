@@ -3,7 +3,7 @@ use axum::{
     http::{HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
     routing::get,
-    Json, Router,
+    Router,
 };
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
@@ -47,12 +47,6 @@ async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, 
     Ok(activity)
 }
 
-async fn get_calendar_data_json(
-    names: Query<Names>,
-) -> Result<Json<ContributionActivity>, StatusCode> {
-    get_calendar_data(names).await.map(|v| Json(v))
-}
-
 async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, StatusCode> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
@@ -63,7 +57,6 @@ async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, Stat
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/api/calendar", get(get_calendar_data_json))
         .route("/api/calendar.svg", get(get_calendar_svg))
         .route_service("/", static_file!("gitlab-calendar/index.html", "text/html"))
         .route_service(

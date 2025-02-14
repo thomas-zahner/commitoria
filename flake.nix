@@ -64,6 +64,16 @@
             };
             nativeBuildInputs = [ pkgs.pkg-config ];
             buildInputs = [ pkgs.openssl ];
+            installPhase = ''
+              runHook preInstall
+              release_target="target/x86_64-unknown-linux-gnu/release/" # todo: parametrise platform
+
+              mkdir $out
+              cp -r static/ $out
+              cp $release_target/web $out/commitoria-web
+
+              runHook postInstall
+            '';
           };
         }
       );

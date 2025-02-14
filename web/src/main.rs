@@ -13,6 +13,16 @@ use commitoria_lib::{
 };
 use serde::Deserialize;
 
+macro_rules! static_file {
+    ($file:expr, $content_type:expr $(,)?) => {{
+        let mut headers = HeaderMap::new();
+        headers.insert("Content-Type", HeaderValue::from_static($content_type));
+        let content = include_str!(concat!("../static/", $file));
+        let result: Result<(HeaderMap, &str), StatusCode> = Ok((headers, content));
+        get(result)
+    }};
+}
+
 #[derive(Deserialize)]
 struct Names {
     github: Option<String>,
@@ -48,16 +58,6 @@ async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, Stat
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
     let activity = get_calendar_data(names);
     Ok((headers, SvgRenderer::render(&activity.await?)))
-}
-
-macro_rules! static_file {
-    ($file:expr, $content_type:expr $(,)?) => {{
-        let mut headers = HeaderMap::new();
-        headers.insert("Content-Type", HeaderValue::from_static($content_type));
-        let content = include_str!(concat!("../static/", $file));
-        let result: Result<(HeaderMap, &str), StatusCode> = Ok((headers, content));
-        get(result)
-    }};
 }
 
 #[tokio::main]

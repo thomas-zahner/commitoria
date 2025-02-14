@@ -1,12 +1,50 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
         <title>Commitoria</title>
+
+        <style>
+            body {
+                text-align: center;
+                font-family: sans-serif;
+            }
+
+            form {
+                margin-top: 3em;
+            }
+
+            input {
+                padding: 10px;
+                font-size: 18px;
+                outline: none;
+                border-radius: 5px;
+                border: 2px solid gray;
+                margin-bottom: 3px;
+            }
+
+            input[type="submit"] {
+                margin-top: 1em;
+            }
+        </style>
     </head>
     <body>
         <form action="/calendar">
-            <input type="text" name="gitlab" placeholder="GitLab username" />
-            <input type="text" name="github" placeholder="GitHub username" />
+            <h1>Configure your calendar</h1>
+            <div>
+                <input
+                    type="text"
+                    name="gitlab"
+                    placeholder="GitLab username"
+                />
+            </div>
+
+            <div>
+                <input
+                    type="text"
+                    name="github"
+                    placeholder="GitHub username"
+                />
+            </div>
             <input type="submit" value="Show activity" />
         </form>
     </body>

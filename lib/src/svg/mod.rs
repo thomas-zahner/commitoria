@@ -6,10 +6,14 @@ use time::Date;
 
 mod contribution_level;
 
+const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;
 
 #[derive(Builder)]
 pub struct SvgRenderer {
+    #[builder(default = "FONT_SIZE_DEFAULT")]
+    font_size: usize,
+
     #[builder(default = "CELL_SIZE_DEFAULT")]
     cell_size: usize,
 
@@ -25,41 +29,8 @@ impl SvgRendererBuilder {
     }
 }
 
-const STYLE: &str = r#"<style>
-    :root {
-        --user-activity-0: #ececef;
-        --user-activity-1: #d2dcff;
-        --user-activity-2: #7992f5;
-        --user-activity-3: #4e65cd;
-        --user-activity-4: #303470;
-        --text-color-default: #3a383f;
-        --border-color-default: #dcdcde;
-    }
-
-    .user-contrib-text {
-        font-size: 11px;
-    }
-
-    .user-contrib-cell[data-level="0"] {
-        fill: var(--user-activity-0);
-    }
-    .user-contrib-cell[data-level="1"] {
-        fill: var(--user-activity-1);
-    }
-    .user-contrib-cell[data-level="2"] {
-        fill: var(--user-activity-2);
-    }
-    .user-contrib-cell[data-level="3"] {
-        fill: var(--user-activity-3);
-    }
-    .user-contrib-cell[data-level="4"] {
-        fill: var(--user-activity-4);
-    }
-</style>"#;
-
 const FIRST_DAY_OF_WEEK: Weekday = Weekday::Mon;
-const HEIGHT: usize = 140;
-const WIDTH_EXTRA_PADDING: usize = 6;
+const EXTRA_PADDING: usize = 6;
 
 const MONTH_NAMES: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -141,17 +112,21 @@ impl SvgRenderer {
 
         let content = self.render_week_rows(result) + "\n" + &self.render_text(months);
 
-        let width = (group + 2) * self.day_size_with_space + WIDTH_EXTRA_PADDING;
-        self.wrap_svg(width, &content)
+        let width = (group + 2) * self.day_size_with_space + EXTRA_PADDING;
+        let height = self.font_size + 7 * self.day_size_with_space + EXTRA_PADDING;
+        self.wrap_svg(width, height, &content)
     }
 
-    fn wrap_svg(&self, width: usize, content: &str) -> String {
+    fn wrap_svg(&self, width: usize, height: usize, content: &str) -> String {
         format!(
             r#"<svg xmlns="http://www.w3.org/2000/svg" width="{}" height="{}" class="contrib-calendar" data-testid="contrib-calendar">
     {}
     {}
 </svg>"#,
-            width, HEIGHT, STYLE, content
+            width,
+            height,
+            self.get_style(),
+            content
         )
     }
 
@@ -204,6 +179,43 @@ impl SvgRenderer {
                 .map(|month| month.render(self.day_size_with_space))
                 .collect::<Vec<_>>()
                 .join("\n")
+        )
+    }
+
+    fn get_style(&self) -> String {
+        format!(
+            r#"<style>
+            :root {{
+                --user-activity-0: #ececef;
+                --user-activity-1: #d2dcff;
+                --user-activity-2: #7992f5;
+                --user-activity-3: #4e65cd;
+                --user-activity-4: #303470;
+                --text-color-default: #3a383f;
+                --border-color-default: #dcdcde;
+            }}
+
+            .user-contrib-text {{
+                font-size: {}px;
+            }}
+
+            .user-contrib-cell[data-level="0"] {{
+                fill: var(--user-activity-0);
+            }}
+            .user-contrib-cell[data-level="1"] {{
+                fill: var(--user-activity-1);
+            }}
+            .user-contrib-cell[data-level="2"] {{
+                fill: var(--user-activity-2);
+            }}
+            .user-contrib-cell[data-level="3"] {{
+                fill: var(--user-activity-3);
+            }}
+            .user-contrib-cell[data-level="4"] {{
+                fill: var(--user-activity-4);
+            }}
+        </style>"#,
+            self.font_size
         )
     }
 }

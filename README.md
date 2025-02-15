@@ -63,3 +63,21 @@ Using this approach is "hacky" because we need to extract data from an undocumen
 but this allows us to skip authentication.
 
 See [github.rs](./lib/src/provider/github.rs) for the implementation.
+
+## Development
+
+Use [Cargo](https://doc.rust-lang.org/cargo/) for development and testing.
+With Nix the following commands are supported:
+
+```bash
+nix develop
+nix build
+nix run
+```
+
+Additionally, creating a Docker image is as easy as:
+
+```bash
+nix build '.#docker'
+docker load < ./result
+```

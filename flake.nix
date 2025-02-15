@@ -8,6 +8,7 @@
     {
       nixpkgs,
       rust-overlay,
+      self,
       ...
     }:
     let
@@ -26,7 +27,7 @@
             inherit system;
             overlays = [ (import rust-overlay) ];
           };
-          rustVersion = "latest"; # using a specific version: "1.62.0"
+          rustVersion = "latest";
           rust = pkgs.rust-bin.stable.${rustVersion}.default.override {
             extensions = [
               "rust-src" # for rust-analyzer
@@ -65,6 +66,13 @@
             };
             nativeBuildInputs = [ pkgs.pkg-config ];
             buildInputs = [ pkgs.openssl ];
+          };
+
+          docker = pkgs.dockerTools.buildImage {
+            name = "commitoria-web";
+            config = {
+              Cmd = [ "${self.packages.x86_64-linux.default}/bin/web" ];
+            };
           };
         }
       );

@@ -1,9 +1,10 @@
-async function fetchData({ gitlab, github, cellSize }) {
+async function fetchData({ gitlab, github, cellSize, fontSize }) {
   const params = new URLSearchParams();
 
   if (gitlab) params.append("gitlab", gitlab);
   if (github) params.append("github", github);
   if (cellSize) params.append("cell_size", cellSize);
+  if (fontSize) params.append("font_size", fontSize);
 
   const response = await fetch(
     `http://localhost:3000/api/calendar.svg?${params}`,
@@ -65,4 +66,5 @@ fetchData({
   gitlab: params.get("gitlab"),
   github: params.get("github"),
   cellSize: params.get("cell_size"),
+  fontSize: params.get("font_size"),
 }).catch(console.error);

@@ -52,14 +52,14 @@ impl MonthText {
         MONTH_NAMES[self.month as usize].to_owned()
     }
 
-    fn render(&self, day_size_with_space: usize) -> String {
-        let x = day_size_with_space * self.group + 1 + day_size_with_space;
-        const Y: usize = 10;
+    fn render(&self, renderer: &SvgRenderer) -> String {
+        let x = renderer.day_size_with_space * self.group + 1 + renderer.day_size_with_space;
+        let y = renderer.font_size;
 
         format!(
             r#"<text x="{}" y="{}" class="user-contrib-text">{}</text>"#,
             x,
-            Y,
+            y,
             self.get_text()
         )
     }
@@ -136,12 +136,13 @@ impl SvgRenderer {
             .enumerate()
             .map(|(week, day_elements)| {
                 let x = self.day_size_with_space * week + 1 + self.day_size_with_space;
+                let y = self.font_size + EXTRA_PADDING;
                 let week_day_cells = self.render_week_day_cells(day_elements);
                 format!(
-                    r#"<g transform="translate({}, 18)" data-testid="user-contrib-cell-group">
+                    r#"<g transform="translate({}, {})" data-testid="user-contrib-cell-group">
 {}
 </g>"#,
-                    x, week_day_cells
+                    x, y, week_day_cells
                 )
             })
             .collect::<Vec<_>>()
@@ -176,7 +177,7 @@ impl SvgRenderer {
             r#"<g direction="ltr">{}</g>"#,
             months
                 .iter()
-                .map(|month| month.render(self.day_size_with_space))
+                .map(|month| month.render(&self))
                 .collect::<Vec<_>>()
                 .join("\n")
         )

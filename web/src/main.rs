@@ -27,6 +27,7 @@ macro_rules! static_file {
 struct Names {
     github: Option<String>,
     gitlab: Option<String>,
+    font_size: Option<usize>,
     cell_size: Option<usize>,
 }
 
@@ -53,6 +54,10 @@ fn build_renderer(names: Query<Names>) -> SvgRenderer {
 
     if let Some(cell_size) = names.0.cell_size {
         builder.cell_size(cell_size);
+    }
+
+    if let Some(font_size) = names.0.font_size {
+        builder.font_size(font_size);
     }
 
     builder.build().unwrap()

@@ -54,6 +54,7 @@
         {
           default = pkgs.rustPlatform.buildRustPackage {
             name = "commitoria-web";
+            meta.mainProgram = "web";
             srcs = [
               ./lib
               ./web

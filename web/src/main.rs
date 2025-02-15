@@ -8,7 +8,7 @@ use axum::{
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
-    svg::SvgRenderer,
+    svg::{SvgRenderer, SvgRendererBuilder},
     types::ContributionActivity,
 };
 use serde::Deserialize;
@@ -23,22 +23,23 @@ macro_rules! static_file {
     }};
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct Names {
     github: Option<String>,
     gitlab: Option<String>,
+    cell_size: Option<usize>,
 }
 
 async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, StatusCode> {
     let mut activity = ContributionActivity::new();
 
-    if let Some(name) = names.0.gitlab {
+    if let Some(name) = names.0.gitlab.clone() {
         activity += Gitlab::fetch(ReqwestDataSource {}, name)
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     }
 
-    if let Some(name) = names.0.github {
+    if let Some(name) = names.0.github.clone() {
         activity += Github::fetch(ReqwestDataSource {}, name)
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -47,11 +48,21 @@ async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, 
     Ok(activity)
 }
 
+fn build_renderer(names: Query<Names>) -> SvgRenderer {
+    let mut builder = SvgRendererBuilder::default();
+
+    if let Some(cell_size) = names.0.cell_size {
+        builder.cell_size(cell_size);
+    }
+
+    builder.build().unwrap()
+}
+
 async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, StatusCode> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
-    let activity = get_calendar_data(names);
-    Ok((headers, SvgRenderer::render(&activity.await?)))
+    let activity = get_calendar_data(names.clone());
+    Ok((headers, build_renderer(names).render(&activity.await?)))
 }
 
 #[tokio::main]

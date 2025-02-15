@@ -1,8 +1,9 @@
-async function fetchData({ gitlab, github }) {
+async function fetchData({ gitlab, github, cellSize }) {
   const params = new URLSearchParams();
 
   if (gitlab) params.append("gitlab", gitlab);
   if (github) params.append("github", github);
+  if (cellSize) params.append("cell_size", cellSize);
 
   const response = await fetch(
     `http://localhost:3000/api/calendar.svg?${params}`,
@@ -60,6 +61,8 @@ addEventListener("mouseover", (event) => {
 addEventListener("mouseout", (event) => whenUserContribCell(event, hidePopup));
 
 const params = new URL(location).searchParams;
-fetchData({ gitlab: params.get("gitlab"), github: params.get("github") }).catch(
-  console.error,
-);
+fetchData({
+  gitlab: params.get("gitlab"),
+  github: params.get("github"),
+  cellSize: params.get("cell_size"),
+}).catch(console.error);

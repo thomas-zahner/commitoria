@@ -1,11 +1,16 @@
 use crate::svg::contribution_level::{ContributionLevel, GitlabContributionLevel};
 use crate::types::ContributionActivity;
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
+use derive_builder::Builder;
 use time::Date;
 
 mod contribution_level;
 
-pub struct SvgRenderer {}
+#[derive(Builder)]
+pub struct SvgRenderer {
+    #[builder(default = "14")]
+    pub cell_size: usize,
+}
 
 const STYLE: &str = r#"<style>
     :root {
@@ -80,12 +85,12 @@ impl MonthText {
 }
 
 impl SvgRenderer {
-    pub fn render(activity: &ContributionActivity) -> String {
+    pub fn render(&self, activity: &ContributionActivity) -> String {
         let today = chrono::Local::now().date_naive();
-        Self::render_at(activity, today)
+        self.render_at(activity, today)
     }
 
-    fn render_at(activity: &ContributionActivity, last_day: NaiveDate) -> String {
+    fn render_at(&self, activity: &ContributionActivity, last_day: NaiveDate) -> String {
         let mut group = 0;
         let mut result: Vec<Vec<Data>> = vec![vec![]]; // todo: functional instead of this weird imperative style
         let mut months: Vec<MonthText> = vec![];
@@ -124,13 +129,13 @@ impl SvgRenderer {
             day = day.checked_add_days(Days::new(1)).unwrap();
         }
 
-        let content = Self::render_week_rows(result) + "\n" + &Self::render_text(months);
+        let content = self.render_week_rows(result) + "\n" + &Self::render_text(months);
 
         let width = (group + 2) * DAY_SIZE_WITH_SPACE + WIDTH_EXTRA_PADDING;
-        Self::wrap_svg(width, &content)
+        self.wrap_svg(width, &content)
     }
 
-    fn wrap_svg(width: usize, content: &str) -> String {
+    fn wrap_svg(&self, width: usize, content: &str) -> String {
         format!(
             r#"<svg xmlns="http://www.w3.org/2000/svg" width="{}" height="{}" class="contrib-calendar" data-testid="contrib-calendar">
     {}
@@ -140,13 +145,13 @@ impl SvgRenderer {
         )
     }
 
-    fn render_week_rows(result: Vec<Vec<Data>>) -> String {
+    fn render_week_rows(&self, result: Vec<Vec<Data>>) -> String {
         let content = result
             .into_iter()
             .enumerate()
             .map(|(week, day_elements)| {
                 let x = DAY_SIZE_WITH_SPACE * week + 1 + DAY_SIZE_WITH_SPACE;
-                let week_day_cells = Self::render_week_day_cells(day_elements);
+                let week_day_cells = self.render_week_day_cells(day_elements);
                 format!(
                     r#"<g transform="translate({}, 18)" data-testid="user-contrib-cell-group">
 {}
@@ -159,8 +164,8 @@ impl SvgRenderer {
         content
     }
 
-    fn render_week_day_cells(days: Vec<Data>) -> String {
-        const CELL_SIZE: usize = 14;
+    fn render_week_day_cells(&self, days: Vec<Data>) -> String {
+        let cell_size: usize = self.cell_size;
         const CELL_RADIUS: usize = 2;
         const FIST_DAY_OF_WEEK: usize = 0; // todo
 
@@ -175,7 +180,7 @@ impl SvgRenderer {
                 let y = DAY_SIZE_WITH_SPACE * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
 
-                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{CELL_SIZE}" height="{CELL_SIZE}" data-level="{data_level}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
+                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{cell_size}" height="{cell_size}" data-level="{data_level}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -212,7 +217,7 @@ mod tests {
 
         let today = chrono::naive::NaiveDate::from_ymd_opt(2024, 12, 13).unwrap();
 
-        let svg = SvgRenderer::render_at(&activity, today);
+        let svg = get_renderer().render_at(&activity, today);
         let fixture = read_fixture("fixtures/activity.svg");
         assert_eq!(svg, fixture.trim());
     }
@@ -250,9 +255,15 @@ mod tests {
             },
         ]];
 
-        let svg = SvgRenderer::render_week_rows(data);
+        let svg = get_renderer().render_week_rows(data);
         let fixture = read_fixture("fixtures/week_group.svg");
         assert_eq!(svg, fixture.trim());
+    }
+
+    fn get_renderer() -> SvgRenderer {
+        SvgRenderer {
+            options: super::SvgRenderOptions::default(),
+        }
     }
 
     fn read_fixture(path: &str) -> String {

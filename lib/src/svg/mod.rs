@@ -6,10 +6,23 @@ use time::Date;
 
 mod contribution_level;
 
+const CELL_SIZE_DEFAULT: usize = 14;
+
 #[derive(Builder)]
 pub struct SvgRenderer {
-    #[builder(default = "14")]
-    pub cell_size: usize,
+    #[builder(default = "CELL_SIZE_DEFAULT")]
+    cell_size: usize,
+
+    #[builder(default = "self.day_size_with_space()")]
+    #[builder(setter(skip))]
+    day_size_with_space: usize,
+}
+
+impl SvgRendererBuilder {
+    fn day_size_with_space(&self) -> usize {
+        const DAY_SPACE: usize = 1;
+        self.cell_size.unwrap_or(CELL_SIZE_DEFAULT) + DAY_SPACE * 2
+    }
 }
 
 const STYLE: &str = r#"<style>
@@ -44,9 +57,6 @@ const STYLE: &str = r#"<style>
     }
 </style>"#;
 
-const DAY_SPACE: usize = 1;
-const DAY_SIZE: usize = 14;
-const DAY_SIZE_WITH_SPACE: usize = DAY_SIZE + DAY_SPACE * 2;
 const FIRST_DAY_OF_WEEK: Weekday = Weekday::Mon;
 const HEIGHT: usize = 140;
 const WIDTH_EXTRA_PADDING: usize = 6;
@@ -71,8 +81,8 @@ impl MonthText {
         MONTH_NAMES[self.month as usize].to_owned()
     }
 
-    fn render(&self) -> String {
-        let x = DAY_SIZE_WITH_SPACE * self.group + 1 + DAY_SIZE_WITH_SPACE;
+    fn render(&self, day_size_with_space: usize) -> String {
+        let x = day_size_with_space * self.group + 1 + day_size_with_space;
         const Y: usize = 10;
 
         format!(
@@ -129,9 +139,9 @@ impl SvgRenderer {
             day = day.checked_add_days(Days::new(1)).unwrap();
         }
 
-        let content = self.render_week_rows(result) + "\n" + &Self::render_text(months);
+        let content = self.render_week_rows(result) + "\n" + &self.render_text(months);
 
-        let width = (group + 2) * DAY_SIZE_WITH_SPACE + WIDTH_EXTRA_PADDING;
+        let width = (group + 2) * self.day_size_with_space + WIDTH_EXTRA_PADDING;
         self.wrap_svg(width, &content)
     }
 
@@ -150,7 +160,7 @@ impl SvgRenderer {
             .into_iter()
             .enumerate()
             .map(|(week, day_elements)| {
-                let x = DAY_SIZE_WITH_SPACE * week + 1 + DAY_SIZE_WITH_SPACE;
+                let x = self.day_size_with_space * week + 1 + self.day_size_with_space;
                 let week_day_cells = self.render_week_day_cells(day_elements);
                 format!(
                     r#"<g transform="translate({}, 18)" data-testid="user-contrib-cell-group">
@@ -177,7 +187,7 @@ impl SvgRenderer {
                     1 => "1 contribution".to_owned(),
                     i => format!("{} contributions", i),
                 });
-                let y = DAY_SIZE_WITH_SPACE * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
+                let y = self.day_size_with_space * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
 
                 format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{cell_size}" height="{cell_size}" data-level="{data_level}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
@@ -186,12 +196,12 @@ impl SvgRenderer {
             .join("\n")
     }
 
-    fn render_text(months: Vec<MonthText>) -> String {
+    fn render_text(&self, months: Vec<MonthText>) -> String {
         format!(
             r#"<g direction="ltr">{}</g>"#,
             months
                 .iter()
-                .map(|month| month.render())
+                .map(|month| month.render(self.day_size_with_space))
                 .collect::<Vec<_>>()
                 .join("\n")
         )
@@ -202,7 +212,7 @@ impl SvgRenderer {
 mod tests {
     use time::Date;
 
-    use super::SvgRenderer;
+    use super::{SvgRenderer, SvgRendererBuilder};
     use crate::{
         provider::{github::Github, GitProvider},
         source::FixtureDataSource,
@@ -261,9 +271,7 @@ mod tests {
     }
 
     fn get_renderer() -> SvgRenderer {
-        SvgRenderer {
-            options: super::SvgRenderOptions::default(),
-        }
+        SvgRendererBuilder::default().build().unwrap()
     }
 
     fn read_fixture(path: &str) -> String {

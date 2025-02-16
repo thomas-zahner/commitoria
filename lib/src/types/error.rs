@@ -1,3 +1,4 @@
+use reqwest::StatusCode;
 use scraper::error::SelectorErrorKind;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -10,6 +11,12 @@ pub enum Error {
     UnableToParseJson(String),
     ReqwestError(String),
     UserNotFound,
+}
+
+impl From<Error> for (StatusCode, String) {
+    fn from(error: Error) -> Self {
+        (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", error))
+    }
 }
 
 impl From<SelectorErrorKind<'_>> for Error {

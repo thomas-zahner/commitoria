@@ -1,5 +1,4 @@
 use axum::{
-    error_handling::HandleError,
     extract::Query,
     http::{HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
@@ -60,24 +59,17 @@ fn build_renderer(names: Query<Names>) -> SvgRenderer {
     builder.build().unwrap()
 }
 
-async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, Error> {
+async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, (StatusCode, String)> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
-    let activity = get_calendar_data(names.clone());
-    Ok((headers, build_renderer(names).render(&activity.await?)))
-}
-
-fn handle_error<T: IntoResponse>(error: Error) -> (StatusCode, String) {
-    (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", error))
+    let activity = get_calendar_data(names.clone()).await?;
+    Ok((headers, build_renderer(names).render(&activity)))
 }
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route_service(
-            "/api/calendar.svg",
-            HandleError::new(get_calendar_svg, handle_error),
-        )
+        .route("/api/calendar.svg", get(get_calendar_svg))
         .route_service("/", static_file!("gitlab-calendar/index.html", "text/html"))
         .route_service(
             "/calendar",

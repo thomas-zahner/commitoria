@@ -70,6 +70,15 @@
 
           docker = pkgs.dockerTools.buildImage {
             name = "commitoria-web";
+
+            copyToRoot = pkgs.buildEnv {
+              name = "image-root";
+              paths = [
+                pkgs.openssl
+                pkgs.cacert
+              ];
+            };
+
             config = {
               Cmd = [ "${self.packages.x86_64-linux.default}/bin/web" ];
             };

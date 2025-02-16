@@ -1,4 +1,5 @@
 use axum::{
+    error_handling::HandleError,
     extract::Query,
     http::{HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
@@ -9,7 +10,7 @@ use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
     svg::{SvgRenderer, SvgRendererBuilder},
-    types::ContributionActivity,
+    types::{ContributionActivity, Error},
 };
 use serde::Deserialize;
 
@@ -31,19 +32,15 @@ struct Names {
     cell_size: Option<usize>,
 }
 
-async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, StatusCode> {
+async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
     if let Some(name) = names.0.gitlab.clone() {
-        activity += Gitlab::fetch(ReqwestDataSource {}, name)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        activity += Gitlab::fetch(ReqwestDataSource {}, name).await?;
     }
 
     if let Some(name) = names.0.github.clone() {
-        activity += Github::fetch(ReqwestDataSource {}, name)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        activity += Github::fetch(ReqwestDataSource {}, name).await?;
     }
 
     Ok(activity)
@@ -63,17 +60,24 @@ fn build_renderer(names: Query<Names>) -> SvgRenderer {
     builder.build().unwrap()
 }
 
-async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, StatusCode> {
+async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, Error> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
     let activity = get_calendar_data(names.clone());
     Ok((headers, build_renderer(names).render(&activity.await?)))
 }
 
+fn handle_error<T: IntoResponse>(error: Error) -> (StatusCode, String) {
+    (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", error))
+}
+
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/api/calendar.svg", get(get_calendar_svg))
+        .route_service(
+            "/api/calendar.svg",
+            HandleError::new(get_calendar_svg, handle_error),
+        )
         .route_service("/", static_file!("gitlab-calendar/index.html", "text/html"))
         .route_service(
             "/calendar",

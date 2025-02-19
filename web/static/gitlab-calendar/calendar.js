@@ -6,9 +6,7 @@ async function fetchData({ gitlab, github, cellSize, fontSize }) {
   if (cellSize) params.append("cell_size", cellSize);
   if (fontSize) params.append("font_size", fontSize);
 
-  const response = await fetch(
-    `http://localhost:3000/api/calendar.svg?${params}`,
-  );
+  const response = await fetch(`/api/calendar.svg?${params}`);
 
   if (!response.ok) {
     throw new Error(`Response status: ${response.status}`);

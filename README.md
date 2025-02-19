@@ -80,4 +80,5 @@ Additionally, creating a Docker image is as easy as:
 ```bash
 nix build '.#docker'
 docker load < ./result
+docker run -p 3000:3000 <IMAGE-FROM-ABOVE-STEP>
 ```

@@ -80,7 +80,7 @@
             };
 
             config = {
-              Cmd = [ "${self.packages.x86_64-linux.default}/bin/web" ];
+              Cmd = [ "${self.packages.${pkgs.system}.default}/bin/web" ];
             };
           };
         }

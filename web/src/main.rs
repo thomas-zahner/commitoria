@@ -78,6 +78,10 @@ async fn main() {
         .route_service(
             "/calendar.js",
             static_file!("gitlab-calendar/calendar.js", "text/javascript"),
+        )
+        .route_service(
+            "/main.css",
+            static_file!("gitlab-calendar/main.css", "text/css"),
         );
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();

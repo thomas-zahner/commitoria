@@ -2,51 +2,8 @@
 <html>
     <head>
         <title>Calendar view</title>
-
         <script defer src="calendar.js"></script>
-
-        <style>
-            body {
-                font-family:
-                    "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell,
-                    "Helvetica Neue", sans-serif;
-            }
-
-            .user-contrib-cell:hover,
-            .user-contrib-cell:focus,
-            .user-contrib-cell.is-active {
-                cursor: pointer;
-                outline: none;
-                stroke: var(--text-color-default);
-            }
-            .user-contrib-cell.is-active {
-                stroke-width: 2px;
-            }
-
-            .user-calendar {
-                display: inline-block;
-
-                text-align: center;
-                padding-top: 0.75rem;
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
-
-                border-width: 1px;
-                border-radius: 0.25rem;
-                border-style: solid;
-                border-color: var(--border-color-default);
-            }
-
-            .activities-block {
-                text-align: center;
-            }
-
-            #popup {
-                position: absolute;
-                display: none;
-                background: gold;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="main.css" />
     </head>
     <body>
         <div id="popup"></div>
@@ -132,6 +89,7 @@
                     Copy URL to the above SVG. You can embed this on your
                     website, GitHub profile, or wherever you like.</label
                 >
+                <br />
                 <input readonly />
             </div>
         </div>

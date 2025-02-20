@@ -1,12 +1,21 @@
-async function fetchData({ gitlab, github, cellSize, fontSize }) {
-  const params = new URLSearchParams();
+function constructUrl() {
+  const url = new URL(location);
+  url.pathname = "/api/calendar.svg";
+  removeEmptyParams(url);
+  return url.href;
+}
 
-  if (gitlab) params.append("gitlab", gitlab);
-  if (github) params.append("github", github);
-  if (cellSize) params.append("cell_size", cellSize);
-  if (fontSize) params.append("font_size", fontSize);
+// as of 2025 there really seems to be no better way, mapping doesn't work...
+function removeEmptyParams(url) {
+  const keysToDelete = [];
+  for (const [key, value] of url.searchParams.entries()) {
+    if (!value) keysToDelete.push(key);
+  }
+  keysToDelete.forEach((key) => url.searchParams.delete(key));
+}
 
-  const response = await fetch(`/api/calendar.svg?${params}`);
+async function fetchData(url) {
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`Response status: ${response.status}`);
@@ -59,10 +68,5 @@ addEventListener("mouseover", (event) => {
 
 addEventListener("mouseout", (event) => whenUserContribCell(event, hidePopup));
 
-const params = new URL(location).searchParams;
-fetchData({
-  gitlab: params.get("gitlab"),
-  github: params.get("github"),
-  cellSize: params.get("cell_size"),
-  fontSize: params.get("font_size"),
-}).catch(console.error);
+const url = constructUrl();
+fetchData(url).catch(console.error);

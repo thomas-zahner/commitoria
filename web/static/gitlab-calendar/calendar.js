@@ -2,7 +2,7 @@ function constructUrl() {
   const url = new URL(location);
   url.pathname = "/api/calendar.svg";
   removeEmptyParams(url);
-  return url.href;
+  return url;
 }
 
 // as of 2025 there really seems to be no better way, mapping doesn't work...
@@ -52,6 +52,12 @@ function whenUserContribCell(event, then) {
   }
 }
 
+function setupUrlSection(url) {
+  const input = document.querySelector("#svg-url > input");
+  input.onclick = (e) => e.target.select();
+  input.value = url.href;
+}
+
 addEventListener("mouseover", (event) => {
   whenUserContribCell(event, () => {
     const target = event.target;
@@ -69,4 +75,5 @@ addEventListener("mouseover", (event) => {
 addEventListener("mouseout", (event) => whenUserContribCell(event, hidePopup));
 
 const url = constructUrl();
+setupUrlSection(url);
 fetchData(url).catch(console.error);

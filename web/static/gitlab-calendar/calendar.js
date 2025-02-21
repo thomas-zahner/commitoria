@@ -29,9 +29,10 @@ async function fetchData(url) {
 
 function showPopup(event, textContent) {
   const popup = document.querySelector("#popup");
+  const pixelsAboveCursor = 30;
   Object.assign(popup.style, {
     left: `${event.clientX + window.scrollX}px`,
-    top: `${event.clientY + window.scrollY}px`,
+    top: `${event.clientY + window.scrollY - pixelsAboveCursor}px`,
     display: "block",
   });
 
@@ -62,18 +63,22 @@ function setupUrlSection(url) {
   markdownInput.value = `[![Contribution activity calendar](${url.href})](${location.href})`;
 }
 
+function extractPopupMessage(event) {
+  const target = event.target;
+  const date = target.getAttribute("data-date");
+  let textContent = target.getAttribute("data-hover-info");
+
+  if (date) {
+    textContent += " on " + date;
+  }
+
+  return textContent;
+}
+
 addEventListener("mouseover", (event) => {
-  whenUserContribCell(event, () => {
-    const target = event.target;
-    const date = target.getAttribute("data-date");
-    let textContent = target.getAttribute("data-hover-info");
-
-    if (date) {
-      textContent += " on " + date;
-    }
-
-    showPopup(event, textContent);
-  });
+  whenUserContribCell(event, () =>
+    showPopup(event, extractPopupMessage(event)),
+  );
 });
 
 addEventListener("mouseout", (event) => whenUserContribCell(event, hidePopup));

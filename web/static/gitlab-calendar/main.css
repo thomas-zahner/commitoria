@@ -55,8 +55,8 @@ input[type="submit"] {
     background: gold;
 }
 
-#svg-url {
-    margin-top: 1em;
+#svg-url-section {
+    margin-top: 2em;
 
     input {
         width: 25em;

@@ -53,9 +53,13 @@ function whenUserContribCell(event, then) {
 }
 
 function setupUrlSection(url) {
-  const input = document.querySelector("#svg-url > input");
-  input.onclick = (e) => e.target.select();
-  input.value = url.href;
+  const svgUrlInput = document.querySelector("input#svg-url");
+  svgUrlInput.onclick = (e) => e.target.select();
+  svgUrlInput.value = url.href;
+
+  const markdownInput = document.querySelector("input#markdown");
+  markdownInput.onclick = (e) => e.target.select();
+  markdownInput.value = `[![Contribution activity calendar](${url.href})](${location.href})`;
 }
 
 addEventListener("mouseover", (event) => {

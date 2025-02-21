@@ -198,6 +198,7 @@ impl SvgRenderer {
 
             .user-contrib-text {{
                 font-size: {}px;
+                font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
             }}
 
             .user-contrib-cell[data-level="0"] {{

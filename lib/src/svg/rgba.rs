@@ -22,6 +22,23 @@ impl From<Rgba> for String {
     }
 }
 
+enum StringToRgbaError {
+    NonAscii,
+    InvalidLength,
+}
+
+impl TryFrom<String> for Rgba {
+    type Error = StringToRgbaError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        use StringToRgbaError::*;
+
+        for c in value.chars() {}
+
+        Ok(todo!())
+    }
+}
+
 impl Add for Rgba {
     type Output = Self;
 

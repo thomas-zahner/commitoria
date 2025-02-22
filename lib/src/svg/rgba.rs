@@ -13,6 +13,15 @@ impl Rgba {
     }
 }
 
+impl From<Rgba> for String {
+    fn from(value: Rgba) -> String {
+        format!(
+            "{:02x}{:02x}{:02x}{:02x}",
+            value.0, value.1, value.2, value.3
+        )
+    }
+}
+
 impl Add for Rgba {
     type Output = Self;
 
@@ -73,6 +82,14 @@ mod tests {
         assert_eq!(
             Rgba(2, 50, 100, 255).interoplate(Rgba(0, 0, 0, 0), 0.5),
             Rgba(1, 25, 50, 127)
+        );
+    }
+
+    #[test]
+    fn into_string() {
+        assert_eq!(
+            String::from(Rgba(202, 254, 0, 66)),
+            String::from("cafe0042")
         );
     }
 }

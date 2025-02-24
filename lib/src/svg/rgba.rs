@@ -1,4 +1,7 @@
-use std::ops::{Add, Mul, Sub};
+use std::{
+    num::ParseIntError,
+    ops::{Add, Mul, Sub},
+};
 
 #[derive(PartialEq, Eq, Debug)]
 struct Rgba(u8, u8, u8, u8);
@@ -22,20 +25,46 @@ impl From<Rgba> for String {
     }
 }
 
+#[derive(Debug, PartialEq)]
 enum StringToRgbaError {
-    NonAscii,
     InvalidLength,
+    NotAscii,
+    InvalidHexValue(ParseIntError),
 }
 
+impl From<ParseIntError> for StringToRgbaError {
+    fn from(error: ParseIntError) -> Self {
+        Self::InvalidHexValue(error)
+    }
+}
+
+/// Try to convert a hexadecimal string to `Rgba`.
+/// The string can optionally be prefixed with the `#` character.
 impl TryFrom<String> for Rgba {
     type Error = StringToRgbaError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+    fn try_from(mut value: String) -> Result<Self, Self::Error> {
         use StringToRgbaError::*;
+        fn convert_to_u8(value: &str) -> Result<u8, ParseIntError> {
+            u8::from_str_radix(value, 16)
+        }
 
-        for c in value.chars() {}
+        if value.get(0..1) == Some(&"#") {
+            value = value[1..].into();
+        }
 
-        Ok(todo!())
+        if !value.is_ascii() {
+            Err(NotAscii)
+        } else if value.len() != 8 {
+            Err(InvalidLength)
+        } else {
+            Ok(Self(
+                convert_to_u8(&value[0..2])?,
+                convert_to_u8(&value[2..4])?,
+                convert_to_u8(&value[4..6])?,
+                convert_to_u8(&value[6..8])?,
+            ))
+        }
     }
 }
 
@@ -107,6 +136,42 @@ mod tests {
         assert_eq!(
             String::from(Rgba(202, 254, 0, 66)),
             String::from("cafe0042")
+        );
+    }
+
+    #[test]
+    fn from_string() {
+        assert_eq!(
+            Rgba::try_from("#cafe0042".to_string()),
+            Ok(Rgba(202, 254, 0, 66))
+        );
+    }
+
+    #[test]
+    fn from_string_without_hashtag_prefix() {
+        assert_eq!(
+            Rgba::try_from("cafe0042".to_string()),
+            Ok(Rgba(202, 254, 0, 66))
+        );
+    }
+
+    #[test]
+    fn from_string_uppercase() {
+        assert_eq!(
+            Rgba::try_from("ABCDEFAB".to_string()),
+            Ok(Rgba(171, 205, 239, 171))
+        );
+    }
+
+    #[test]
+    fn double_conversion() {
+        assert_eq!(
+            String::from(Rgba::try_from("cafecafe".to_string()).unwrap()),
+            "cafecafe".to_string()
+        );
+        assert_eq!(
+            Rgba::try_from(String::from(Rgba(12, 34, 56, 78))).unwrap(),
+            Rgba(12, 34, 56, 78)
         );
     }
 }

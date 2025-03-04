@@ -8,6 +8,10 @@ use std::{
 pub(crate) struct Rgba(u8, u8, u8, u8);
 
 impl Rgba {
+    pub(crate) const fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
+        Self(r, g, b, a)
+    }
+
     pub(crate) fn interpolate(&self, other: Rgba, factor: f32) -> Rgba {
         let r = self.0 as f32 + factor * (other.0 as f32 - self.0 as f32);
         let g = self.1 as f32 + factor * (other.1 as f32 - self.1 as f32);

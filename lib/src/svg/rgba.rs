@@ -1,13 +1,14 @@
 use std::{
+    fmt::{self, Display},
     num::ParseIntError,
     ops::{Add, Mul, Sub},
 };
 
-#[derive(PartialEq, Eq, Debug)]
-struct Rgba(u8, u8, u8, u8);
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub(crate) struct Rgba(u8, u8, u8, u8);
 
 impl Rgba {
-    fn interoplate(&self, other: Rgba, factor: f32) -> Rgba {
+    pub(crate) fn interpolate(&self, other: Rgba, factor: f32) -> Rgba {
         let r = self.0 as f32 + factor * (other.0 as f32 - self.0 as f32);
         let g = self.1 as f32 + factor * (other.1 as f32 - self.1 as f32);
         let b = self.2 as f32 + factor * (other.2 as f32 - self.2 as f32);
@@ -16,17 +17,24 @@ impl Rgba {
     }
 }
 
-impl From<Rgba> for String {
-    fn from(value: Rgba) -> String {
+impl From<&Rgba> for String {
+    fn from(value: &Rgba) -> String {
         format!(
-            "{:02x}{:02x}{:02x}{:02x}",
+            "#{:02x}{:02x}{:02x}{:02x}",
             value.0, value.1, value.2, value.3
         )
     }
 }
 
+impl Display for Rgba {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let x = String::from(self);
+        write!(f, "{}", x)
+    }
+}
+
 #[derive(Debug, PartialEq)]
-enum StringToRgbaError {
+pub(crate) enum StringToRgbaError {
     InvalidLength,
     NotAscii,
     InvalidHexValue(ParseIntError),
@@ -121,12 +129,12 @@ mod tests {
     #[test]
     fn interpolate() {
         assert_eq!(
-            Rgba(0, 0, 0, 0).interoplate(Rgba(2, 50, 100, 255), 0.5),
+            Rgba(0, 0, 0, 0).interpolate(Rgba(2, 50, 100, 255), 0.5),
             Rgba(1, 25, 50, 127)
         );
 
         assert_eq!(
-            Rgba(2, 50, 100, 255).interoplate(Rgba(0, 0, 0, 0), 0.5),
+            Rgba(2, 50, 100, 255).interpolate(Rgba(0, 0, 0, 0), 0.5),
             Rgba(1, 25, 50, 127)
         );
     }
@@ -134,8 +142,8 @@ mod tests {
     #[test]
     fn into_string() {
         assert_eq!(
-            String::from(Rgba(202, 254, 0, 66)),
-            String::from("cafe0042")
+            String::from(&Rgba(202, 254, 0, 66)),
+            String::from("#cafe0042")
         );
     }
 
@@ -166,12 +174,20 @@ mod tests {
     #[test]
     fn double_conversion() {
         assert_eq!(
-            String::from(Rgba::try_from("cafecafe".to_string()).unwrap()),
-            "cafecafe".to_string()
+            String::from(&Rgba::try_from("#cafecafe".to_string()).unwrap()),
+            "#cafecafe".to_string()
         );
         assert_eq!(
-            Rgba::try_from(String::from(Rgba(12, 34, 56, 78))).unwrap(),
+            Rgba::try_from(String::from(&Rgba(12, 34, 56, 78))).unwrap(),
             Rgba(12, 34, 56, 78)
+        );
+    }
+
+    #[test]
+    fn format() {
+        assert_eq!(
+            format!("{}", Rgba::try_from("#12345678".to_string()).unwrap()),
+            "#12345678".to_string()
         );
     }
 }

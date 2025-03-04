@@ -6,12 +6,12 @@ Warning: this project is in a very early stage. The code is sparsely documented 
 
 ## Why?
 
-GitHub, GitLab, Bitbucket, Gitea, Forgejo, ...
+GitHub, GitLab, Gitea, Forgejo, Bitbucket, ...
 The list of hosting solutions for your Git repositories seems endless.
 It's hard to chose the right platform which is why most people use multiple platforms.
 You don't always need a fancy frontend, you might host or use some repositories with bare Git.
 
-One thing all the fancy hosting solutions have in common is a way to visualise your contribution activity.
+One thing most fancy hosting solutions have in common is a way to visualise your contribution activity.
 But this visualisation is always limited to the specific platform.
 Commitoria enables aggregation and visualisation across multiple platforms,
 allowing you to see the bigger picture.
@@ -41,6 +41,14 @@ The rewrite into Rust allows the SVG for example to be rendered by a web server.
 It can make sense to provide this data aggregation and visualisation as a service.
 This is what has been done in the [web direcotry](./web).
 The library functions are exposed as a HTTP web server so users can utilise the library with REST API calls.
+
+### Web demo
+
+The repository has been deployed to [commitoria.thomaszahner.ch](https://commitoria.thomaszahner.ch).
+This allows anybody to create their customised activity calendar.
+You can easily include the SVG into your README or website, as illustrated below.
+
+[![Contribution activity calendar](https://commitoria.thomaszahner.ch/api/calendar.svg?gitlab=thomas-zahner&github=thomas-zahner&font_size=13&cell_size=20)](https://commitoria.thomaszahner.ch/calendar?gitlab=thomas-zahner&github=thomas-zahner&font_size=13&cell_size=20)
 
 ## Data aggregation
 

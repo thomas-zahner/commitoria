@@ -1,9 +1,9 @@
-<g transform="translate(17, 18)" data-testid="user-contrib-cell-group">
-<rect x="0" y="0" rx="2" ry="2" width="14" height="14" data-level="0" data-hover-info="No contributions" data-date="2024-12-02" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="16" rx="2" ry="2" width="14" height="14" data-level="0" data-hover-info="No contributions" data-date="2024-12-03" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="32" rx="2" ry="2" width="14" height="14" data-level="1" data-hover-info="1 contribution" data-date="2024-12-04" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="48" rx="2" ry="2" width="14" height="14" data-level="1" data-hover-info="2 contributions" data-date="2024-12-05" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="64" rx="2" ry="2" width="14" height="14" data-level="2" data-hover-info="17 contributions" data-date="2024-12-06" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="80" rx="2" ry="2" width="14" height="14" data-level="0" data-hover-info="No contributions" data-date="2024-12-07" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="96" rx="2" ry="2" width="14" height="14" data-level="0" data-hover-info="No contributions" data-date="2024-12-08" class="user-contrib-cell has-tooltip"></rect>
+<g transform="translate(17, 17)" data-testid="user-contrib-cell-group">
+<rect x="0" y="0" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-02" class="user-contrib-cell has-tooltip"></rect>
+<rect x="0" y="16" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-03" class="user-contrib-cell has-tooltip"></rect>
+<rect x="0" y="32" rx="2" ry="2" width="14" height="14" fill="#d2dcffff" data-hover-info="1 contribution" data-date="2024-12-04" class="user-contrib-cell has-tooltip"></rect>
+<rect x="0" y="48" rx="2" ry="2" width="14" height="14" fill="#d2dcffff" data-hover-info="2 contributions" data-date="2024-12-05" class="user-contrib-cell has-tooltip"></rect>
+<rect x="0" y="64" rx="2" ry="2" width="14" height="14" fill="#7992f5ff" data-hover-info="17 contributions" data-date="2024-12-06" class="user-contrib-cell has-tooltip"></rect>
+<rect x="0" y="80" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-07" class="user-contrib-cell has-tooltip"></rect>
+<rect x="0" y="96" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-08" class="user-contrib-cell has-tooltip"></rect>
 </g>

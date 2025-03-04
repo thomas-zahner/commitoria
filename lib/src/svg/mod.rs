@@ -1,10 +1,10 @@
-use crate::svg::contribution_level::{ContributionLevel, GitlabContributionLevel};
+use crate::svg::contribution_colour::{ContributionColour, GitlabColourStyle};
 use crate::types::ContributionActivity;
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use derive_builder::Builder;
 use time::Date;
 
-mod contribution_level;
+mod contribution_colour;
 mod rgba;
 
 const FONT_SIZE_DEFAULT: usize = 11;
@@ -158,7 +158,6 @@ impl SvgRenderer {
 
         days.into_iter()
             .map(|day| {
-                let data_level  = GitlabContributionLevel::get_contrib_level(day.count);
                 let hover_info = format!("{}", match day.count {
                     0 => "No contributions".to_owned(),
                     1 => "1 contribution".to_owned(),
@@ -166,8 +165,9 @@ impl SvgRenderer {
                 });
                 let y = self.day_size_with_space * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
+                let colour  = GitlabColourStyle::get_colour(day.count);
 
-                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{cell_size}" height="{cell_size}" data-level="{data_level}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
+                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{cell_size}" height="{cell_size}" fill="{colour}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -188,11 +188,6 @@ impl SvgRenderer {
         format!(
             r#"<style>
             :root {{
-                --user-activity-0: #ececef;
-                --user-activity-1: #d2dcff;
-                --user-activity-2: #7992f5;
-                --user-activity-3: #4e65cd;
-                --user-activity-4: #303470;
                 --text-color-default: #3a383f;
                 --border-color-default: #dcdcde;
             }}
@@ -200,22 +195,6 @@ impl SvgRenderer {
             .user-contrib-text {{
                 font-size: {}px;
                 font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-            }}
-
-            .user-contrib-cell[data-level="0"] {{
-                fill: var(--user-activity-0);
-            }}
-            .user-contrib-cell[data-level="1"] {{
-                fill: var(--user-activity-1);
-            }}
-            .user-contrib-cell[data-level="2"] {{
-                fill: var(--user-activity-2);
-            }}
-            .user-contrib-cell[data-level="3"] {{
-                fill: var(--user-activity-3);
-            }}
-            .user-contrib-cell[data-level="4"] {{
-                fill: var(--user-activity-4);
             }}
         </style>"#,
             self.font_size

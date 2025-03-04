@@ -22,7 +22,7 @@ async function fetchData(url) {
   }
 
   const svg = await response.text();
-  const calendarContainer = document.querySelector(".js-contrib-calendar");
+  const calendarContainer = document.querySelector(".calendar");
   calendarContainer.innerHTML = svg;
   calendarContainer.scrollLeft = calendarContainer.scrollWidth;
 }

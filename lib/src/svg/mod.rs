@@ -1,6 +1,7 @@
 use crate::svg::contribution_colour::{ContributionColour, GitlabColourStyle};
 use crate::types::ContributionActivity;
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
+use contribution_colour::ContributionInfo;
 use derive_builder::Builder;
 use time::Date;
 
@@ -156,6 +157,9 @@ impl SvgRenderer {
         const CELL_RADIUS: usize = 2;
         const FIST_DAY_OF_WEEK: usize = 0; // todo
 
+        let average_count_per_day =
+            days.iter().map(|day| day.count).sum::<usize>() as f32 / days.len() as f32;
+
         days.into_iter()
             .map(|day| {
                 let hover_info = format!("{}", match day.count {
@@ -165,7 +169,10 @@ impl SvgRenderer {
                 });
                 let y = self.day_size_with_space * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
-                let colour  = GitlabColourStyle::get_colour(day.count);
+                let colour  = GitlabColourStyle::get_colour(ContributionInfo {
+                    average_count_per_day ,
+                    count_today: day.count,
+                });
 
                 format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{cell_size}" height="{cell_size}" fill="{colour}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
             })

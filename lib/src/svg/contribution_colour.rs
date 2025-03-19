@@ -5,16 +5,16 @@ pub(crate) struct ContributionInfo {
     pub(crate) count_today: usize,
 }
 
-pub(crate) trait ContributionColour {
+pub(crate) trait ColourStrategy {
     fn get_colour(&self, info: ContributionInfo) -> Rgba;
 }
 
-pub(crate) struct InterpolatedColourStyle {
+pub(crate) struct InterpolationStrategy {
     inactive_colour: Rgba,
     active_colour: Rgba,
 }
 
-impl InterpolatedColourStyle {
+impl InterpolationStrategy {
     /// This is a function returning a number ranging from 0 to 1,
     /// indicating how active a user was on the given day with `x` amount of contributions,
     /// with an average contribution count `a` over the last year.
@@ -30,9 +30,9 @@ impl InterpolatedColourStyle {
 }
 
 /// The way GitLab visualises contribution activity
-pub(crate) struct GitlabColourStyle {}
+pub(crate) struct GitlabStrategy {}
 
-impl ContributionColour for GitlabColourStyle {
+impl ColourStrategy for GitlabStrategy {
     fn get_colour(&self, info: ContributionInfo) -> Rgba {
         const WHITE_SMOKE: Rgba = Rgba::new(236, 236, 239, 255); // #ececefff
         const LAVENDER: Rgba = Rgba::new(210, 220, 255, 255); // #d2dcffff
@@ -50,14 +50,11 @@ impl ContributionColour for GitlabColourStyle {
     }
 }
 
-impl ContributionColour for InterpolatedColourStyle {
+impl ColourStrategy for InterpolationStrategy {
     fn get_colour(&self, count: ContributionInfo) -> Rgba {
         self.inactive_colour.interpolate(
             self.active_colour.clone(),
-            dbg!(Self::f(
-                count.count_today as f32,
-                count.average_count_per_day
-            )),
+            Self::f(count.count_today as f32, count.average_count_per_day),
         )
     }
 }
@@ -66,14 +63,14 @@ impl ContributionColour for InterpolatedColourStyle {
 mod tests {
     use crate::svg::rgba::Rgba;
 
-    use super::{ContributionColour, ContributionInfo, InterpolatedColourStyle};
+    use super::{ColourStrategy, ContributionInfo, InterpolationStrategy};
 
     #[test]
-    fn interpolated_colour_style() {
+    fn interpolation() {
         const INACTIVE: Rgba = Rgba::new(0, 0, 0, 0);
         const ACTIVE: Rgba = Rgba::new(255, 255, 255, 255);
 
-        let style = InterpolatedColourStyle {
+        let style = InterpolationStrategy {
             active_colour: ACTIVE,
             inactive_colour: INACTIVE,
         };

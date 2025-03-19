@@ -6,10 +6,13 @@ pub(crate) struct ContributionInfo {
 }
 
 pub(crate) trait ContributionColour {
-    fn get_colour(info: ContributionInfo) -> Rgba;
+    fn get_colour(&self, info: ContributionInfo) -> Rgba;
 }
 
-pub(crate) struct InterpolatedColourStyle {}
+pub(crate) struct InterpolatedColourStyle {
+    inactive_colour: Rgba,
+    active_colour: Rgba,
+}
 
 impl InterpolatedColourStyle {
     /// This is a function returning a number ranging from 0 to 1,
@@ -18,7 +21,11 @@ impl InterpolatedColourStyle {
     ///
     /// Formula: `-1 / ((1 / a) * x + 1) + 1` which can be simplified as `x / (x + a)`
     fn f(x: f32, a: f32) -> f32 {
-        x as f32 / (x as f32 + a)
+        let divisor = x as f32 + a;
+        match divisor {
+            0.0 => 0.0,
+            _ => x as f32 / divisor,
+        }
     }
 }
 
@@ -26,7 +33,7 @@ impl InterpolatedColourStyle {
 pub(crate) struct GitlabColourStyle {}
 
 impl ContributionColour for GitlabColourStyle {
-    fn get_colour(info: ContributionInfo) -> Rgba {
+    fn get_colour(&self, info: ContributionInfo) -> Rgba {
         const WHITE_SMOKE: Rgba = Rgba::new(236, 236, 239, 255); // #ececefff
         const LAVENDER: Rgba = Rgba::new(210, 220, 255, 255); // #d2dcffff
         const CORNFLOWER_BLUE: Rgba = Rgba::new(121, 146, 245, 255); // #7992f5ff
@@ -44,13 +51,13 @@ impl ContributionColour for GitlabColourStyle {
 }
 
 impl ContributionColour for InterpolatedColourStyle {
-    fn get_colour(count: ContributionInfo) -> Rgba {
-        const WHITE_SMOKE: Rgba = Rgba::new(236, 236, 239, 255); // #ececefff
-        const DARKSLATE_BLUE: Rgba = Rgba::new(48, 52, 112, 255); // #303470ff
-
-        WHITE_SMOKE.interpolate(
-            DARKSLATE_BLUE,
-            Self::f(count.count_today as f32, count.average_count_per_day),
+    fn get_colour(&self, count: ContributionInfo) -> Rgba {
+        self.inactive_colour.interpolate(
+            self.active_colour.clone(),
+            dbg!(Self::f(
+                count.count_today as f32,
+                count.average_count_per_day
+            )),
         )
     }
 }
@@ -63,21 +70,37 @@ mod tests {
 
     #[test]
     fn interpolated_colour_style() {
+        const INACTIVE: Rgba = Rgba::new(236, 236, 239, 255); // #ececefff
+        const ACTIVE: Rgba = Rgba::new(48, 52, 112, 255); // #303470ff
+
+        let style = InterpolatedColourStyle {
+            active_colour: ACTIVE,
+            inactive_colour: INACTIVE,
+        };
+
         let average_count_per_day = 5.0;
         assert_eq!(
-            InterpolatedColourStyle::get_colour(ContributionInfo {
+            style.get_colour(ContributionInfo {
                 average_count_per_day,
                 count_today: 0,
             }),
-            Rgba::new(236, 236, 239, 255)
+            INACTIVE
         );
 
         assert_eq!(
-            InterpolatedColourStyle::get_colour(ContributionInfo {
+            style.get_colour(ContributionInfo {
                 average_count_per_day,
                 count_today: 999999,
             }),
-            Rgba::new(48, 52, 112, 255)
+            ACTIVE
+        );
+
+        assert_eq!(
+            style.get_colour(ContributionInfo {
+                average_count_per_day: 0.0,
+                count_today: 0,
+            }),
+            INACTIVE
         );
     }
 }

@@ -17,7 +17,12 @@ impl Rgba {
         let g = self.1 as f32 + factor * (other.1 as f32 - self.1 as f32);
         let b = self.2 as f32 + factor * (other.2 as f32 - self.2 as f32);
         let a = self.3 as f32 + factor * (other.3 as f32 - self.3 as f32);
-        Rgba(r as u8, g as u8, b as u8, a as u8)
+        Rgba(
+            r.round() as u8,
+            g.round() as u8,
+            b.round() as u8,
+            a.round() as u8,
+        )
     }
 }
 
@@ -134,12 +139,12 @@ mod tests {
     fn interpolate() {
         assert_eq!(
             Rgba(0, 0, 0, 0).interpolate(Rgba(2, 50, 100, 255), 0.5),
-            Rgba(1, 25, 50, 127)
+            Rgba(1, 25, 50, 128)
         );
 
         assert_eq!(
             Rgba(2, 50, 100, 255).interpolate(Rgba(0, 0, 0, 0), 0.5),
-            Rgba(1, 25, 50, 127)
+            Rgba(1, 25, 50, 128)
         );
     }
 

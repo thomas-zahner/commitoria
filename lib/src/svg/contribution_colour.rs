@@ -70,8 +70,8 @@ mod tests {
 
     #[test]
     fn interpolated_colour_style() {
-        const INACTIVE: Rgba = Rgba::new(236, 236, 239, 255); // #ececefff
-        const ACTIVE: Rgba = Rgba::new(48, 52, 112, 255); // #303470ff
+        const INACTIVE: Rgba = Rgba::new(0, 0, 0, 0);
+        const ACTIVE: Rgba = Rgba::new(255, 255, 255, 255);
 
         let style = InterpolatedColourStyle {
             active_colour: ACTIVE,

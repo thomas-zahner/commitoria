@@ -137,13 +137,21 @@ impl SvgRenderer {
     }
 
     fn render_week_rows(&self, result: Vec<Vec<Data>>) -> String {
+        let day_count = result.iter().map(|week| week.len()).sum::<usize>();
+        let average_count_per_day = result
+            .iter()
+            .map(|week| week.iter().map(|day| day.count).sum::<usize>())
+            .sum::<usize>() as f32
+            / day_count as f32;
+
         let content = result
             .into_iter()
             .enumerate()
             .map(|(week, day_elements)| {
                 let x = self.day_size_with_space * week + 1 + self.day_size_with_space;
                 let y = self.font_size + EXTRA_PADDING;
-                let week_day_cells = self.render_week_day_cells(day_elements);
+                let week_day_cells =
+                    self.render_week_day_cells(day_elements, average_count_per_day);
                 format!(
                     r#"<g transform="translate({}, {})" data-testid="user-contrib-cell-group">
 {}
@@ -156,13 +164,10 @@ impl SvgRenderer {
         content
     }
 
-    fn render_week_day_cells(&self, days: Vec<Data>) -> String {
+    fn render_week_day_cells(&self, days: Vec<Data>, average_count_per_day: f32) -> String {
         let cell_size: usize = self.cell_size;
         const CELL_RADIUS: usize = 2;
         const FIST_DAY_OF_WEEK: usize = 0; // todo
-
-        let average_count_per_day =
-            days.iter().map(|day| day.count).sum::<usize>() as f32 / days.len() as f32;
 
         days.into_iter()
             .map(|day| {

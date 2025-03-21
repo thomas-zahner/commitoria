@@ -1,5 +1,4 @@
 use crate::svg::contribution_colour::ColourStrategy;
-use crate::svg::contribution_colour::ColourStrategy::GitlabStrategy;
 use crate::types::ContributionActivity;
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use contribution_colour::ContributionInfo;
@@ -174,7 +173,7 @@ impl SvgRenderer {
                 });
                 let y = self.day_size_with_space * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
-                let colour = GitlabStrategy{}.get_colour(ContributionInfo {
+                let colour = self.colour_strategy.get_colour(ContributionInfo {
                     average_count_per_day ,
                     count_today: day.count,
                 });

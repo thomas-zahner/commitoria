@@ -1,4 +1,5 @@
-use crate::svg::contribution_colour::{ColourStrategy, GitlabStrategy};
+use crate::svg::contribution_colour::ColourStrategy;
+use crate::svg::contribution_colour::ColourStrategy::GitlabStrategy;
 use crate::types::ContributionActivity;
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use contribution_colour::ContributionInfo;
@@ -10,6 +11,7 @@ mod rgba;
 
 const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;
+const COLOUR_STRATEGY_DEFAULT: ColourStrategy = ColourStrategy::GitlabStrategy;
 
 #[derive(Builder)]
 pub struct SvgRenderer {
@@ -18,6 +20,9 @@ pub struct SvgRenderer {
 
     #[builder(default = "CELL_SIZE_DEFAULT")]
     cell_size: usize,
+
+    #[builder(default = "COLOUR_STRATEGY_DEFAULT")]
+    colour_strategy: ColourStrategy,
 
     #[builder(default = "self.day_size_with_space()")]
     #[builder(setter(skip))]

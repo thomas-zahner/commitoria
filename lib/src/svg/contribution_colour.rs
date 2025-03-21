@@ -5,65 +5,74 @@ pub(crate) struct ContributionInfo {
     pub(crate) count_today: usize,
 }
 
-pub(crate) trait ColourStrategy {
-    fn get_colour(&self, info: ContributionInfo) -> Rgba;
+#[derive(Clone)]
+pub(crate) enum ColourStrategy {
+    /// The way GitLab visualises contribution activity
+    GitlabStrategy,
+    InterpolationStrategy {
+        inactive_colour: Rgba,
+        active_colour: Rgba,
+    },
 }
 
-pub(crate) struct InterpolationStrategy {
-    inactive_colour: Rgba,
-    active_colour: Rgba,
-}
-
-impl InterpolationStrategy {
-    /// This is a function returning a number ranging from 0 to 1,
-    /// indicating how active a user was on the given day with `x` amount of contributions,
-    /// with an average contribution count `a` over the last year.
-    ///
-    /// Formula: `-1 / ((1 / a) * x + 1) + 1` which can be simplified as `x / (x + a)`
-    fn f(x: f32, a: f32) -> f32 {
-        let divisor = x as f32 + a;
-        match divisor {
-            0.0 => 0.0,
-            _ => x as f32 / divisor,
+impl ColourStrategy {
+    pub(crate) fn get_colour(&self, info: ContributionInfo) -> Rgba {
+        match self {
+            ColourStrategy::GitlabStrategy => get_gitlab_colour(info),
+            ColourStrategy::InterpolationStrategy {
+                inactive_colour,
+                active_colour,
+            } => get_interpolated_colour(inactive_colour, active_colour, info),
         }
     }
 }
 
-/// The way GitLab visualises contribution activity
-pub(crate) struct GitlabStrategy {}
-
-impl ColourStrategy for GitlabStrategy {
-    fn get_colour(&self, info: ContributionInfo) -> Rgba {
-        const WHITE_SMOKE: Rgba = Rgba::new(236, 236, 239, 255); // #ececefff
-        const LAVENDER: Rgba = Rgba::new(210, 220, 255, 255); // #d2dcffff
-        const CORNFLOWER_BLUE: Rgba = Rgba::new(121, 146, 245, 255); // #7992f5ff
-        const ROYAL_BLUE: Rgba = Rgba::new(78, 101, 205, 255); // #4e65cdff
-        const DARKSLATE_BLUE: Rgba = Rgba::new(48, 52, 112, 255); // #303470ff
-
-        match info.count_today {
-            0 => WHITE_SMOKE,
-            c if c < 10 => LAVENDER,
-            c if c < 20 => CORNFLOWER_BLUE,
-            c if c < 30 => ROYAL_BLUE,
-            _ => DARKSLATE_BLUE,
-        }
+/// This is a function returning a number ranging from 0 to 1,
+/// indicating how active a user was on the given day with `x` amount of contributions,
+/// with an average contribution count `a` over the last year.
+///
+/// Formula: `-1 / ((1 / a) * x + 1) + 1` which can be simplified as `x / (x + a)`
+fn f(x: f32, a: f32) -> f32 {
+    let divisor = x as f32 + a;
+    match divisor {
+        0.0 => 0.0,
+        _ => x as f32 / divisor,
     }
 }
 
-impl ColourStrategy for InterpolationStrategy {
-    fn get_colour(&self, count: ContributionInfo) -> Rgba {
-        self.inactive_colour.interpolate(
-            self.active_colour.clone(),
-            Self::f(count.count_today as f32, count.average_count_per_day),
-        )
+fn get_gitlab_colour(info: ContributionInfo) -> Rgba {
+    const WHITE_SMOKE: Rgba = Rgba::new(236, 236, 239, 255); // #ececefff
+    const LAVENDER: Rgba = Rgba::new(210, 220, 255, 255); // #d2dcffff
+    const CORNFLOWER_BLUE: Rgba = Rgba::new(121, 146, 245, 255); // #7992f5ff
+    const ROYAL_BLUE: Rgba = Rgba::new(78, 101, 205, 255); // #4e65cdff
+    const DARKSLATE_BLUE: Rgba = Rgba::new(48, 52, 112, 255); // #303470ff
+
+    match info.count_today {
+        0 => WHITE_SMOKE,
+        c if c < 10 => LAVENDER,
+        c if c < 20 => CORNFLOWER_BLUE,
+        c if c < 30 => ROYAL_BLUE,
+        _ => DARKSLATE_BLUE,
     }
+}
+
+fn get_interpolated_colour(
+    inactive_colour: &Rgba,
+    active_colour: &Rgba,
+    info: ContributionInfo,
+) -> Rgba {
+    inactive_colour.interpolate(
+        active_colour.clone(),
+        f(info.count_today as f32, info.average_count_per_day),
+    )
 }
 
 #[cfg(test)]
 mod tests {
+    use super::ColourStrategy;
+    use super::ColourStrategy::InterpolationStrategy;
     use crate::svg::rgba::Rgba;
-
-    use super::{ColourStrategy, ContributionInfo, InterpolationStrategy};
+    use crate::svg::ContributionInfo;
 
     #[test]
     fn interpolation() {

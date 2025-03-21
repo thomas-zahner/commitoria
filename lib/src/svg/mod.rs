@@ -6,8 +6,8 @@ use contribution_colour::ContributionInfo;
 use derive_builder::Builder;
 use time::Date;
 
-mod contribution_colour;
-mod rgba;
+pub mod contribution_colour;
+pub mod rgba;
 
 const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;

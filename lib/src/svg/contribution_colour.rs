@@ -6,7 +6,7 @@ pub(crate) struct ContributionInfo {
 }
 
 #[derive(Clone)]
-pub(crate) enum ColourStrategy {
+pub enum ColourStrategy {
     /// The way GitLab visualises contribution activity
     GitlabStrategy,
     InterpolationStrategy {

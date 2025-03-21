@@ -8,7 +8,10 @@ use axum::{
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
-    svg::{SvgRenderer, SvgRendererBuilder},
+    svg::{
+        contribution_colour::ColourStrategy, rgba::Rgba, SvgRenderer, SvgRendererBuilder,
+        SvgRendererBuilderError,
+    },
     types::{ContributionActivity, Error},
 };
 use serde::Deserialize;
@@ -29,23 +32,42 @@ struct Names {
     gitlab: Option<String>,
     font_size: Option<usize>,
     cell_size: Option<usize>,
+    colour_strategy: Option<String>,
 }
 
 async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
-    if let Some(name) = names.0.gitlab.clone() {
+    if let Some(name) = names.0.gitlab {
         activity += Gitlab::fetch(ReqwestDataSource {}, name).await?;
     }
 
-    if let Some(name) = names.0.github.clone() {
+    if let Some(name) = names.0.github {
         activity += Github::fetch(ReqwestDataSource {}, name).await?;
     }
 
     Ok(activity)
 }
 
-fn build_renderer(names: Query<Names>) -> SvgRenderer {
+#[derive(Debug)]
+enum BuilderError {
+    SvgRendererBuilderError(SvgRendererBuilderError),
+    UnknownStrategy(String),
+}
+
+impl From<SvgRendererBuilderError> for BuilderError {
+    fn from(value: SvgRendererBuilderError) -> Self {
+        Self::SvgRendererBuilderError(value)
+    }
+}
+
+impl From<BuilderError> for (StatusCode, String) {
+    fn from(error: BuilderError) -> Self {
+        (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", error))
+    }
+}
+
+fn build_renderer(names: Query<Names>) -> Result<SvgRenderer, BuilderError> {
     let mut builder = SvgRendererBuilder::default();
 
     if let Some(cell_size) = names.0.cell_size {
@@ -56,14 +78,30 @@ fn build_renderer(names: Query<Names>) -> SvgRenderer {
         builder.font_size(font_size);
     }
 
-    builder.build().unwrap()
+    match names.0.colour_strategy {
+        Some(s) => {
+            let strategy = match s.as_str() {
+                "GitlabStrategy" => ColourStrategy::GitlabStrategy,
+                "InterpolationStrategy" => ColourStrategy::InterpolationStrategy {
+                    inactive_colour: Rgba::new(236, 236, 239, 255),
+                    active_colour: Rgba::new(48, 52, 112, 255),
+                },
+                unknown => Err(BuilderError::UnknownStrategy(unknown.to_owned()))?,
+            };
+
+            builder.colour_strategy(strategy);
+        }
+        None => {}
+    }
+
+    Ok(builder.build()?)
 }
 
 async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, (StatusCode, String)> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
     let activity = get_calendar_data(names.clone()).await?;
-    Ok((headers, build_renderer(names).render(&activity)))
+    Ok((headers, build_renderer(names)?.render(&activity)))
 }
 
 #[tokio::main]

@@ -5,10 +5,10 @@ use std::{
 };
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub(crate) struct Rgba(u8, u8, u8, u8);
+pub struct Rgba(u8, u8, u8, u8);
 
 impl Rgba {
-    pub(crate) const fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
+    pub const fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
         Self(r, g, b, a)
     }
 
@@ -43,7 +43,7 @@ impl Display for Rgba {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum StringToRgbaError {
+pub enum StringToRgbaError {
     InvalidLength,
     NotAscii,
     InvalidHexValue(ParseIntError),

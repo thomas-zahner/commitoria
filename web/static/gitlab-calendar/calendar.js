@@ -18,13 +18,17 @@ async function fetchData(url) {
   const response = await fetch(url);
 
   if (!response.ok) {
+    const errorMessage = document.querySelector("#error-message");
+    errorMessage.style.display = "initial";
+    errorMessage.textContent = await response.text();
     throw new Error(`Response status: ${response.status}`);
   }
 
   const svg = await response.text();
-  const calendarContainer = document.querySelector(".calendar");
-  calendarContainer.innerHTML = svg;
-  calendarContainer.scrollLeft = calendarContainer.scrollWidth;
+  const calendar = document.querySelector(".calendar");
+  calendar.style.display = "inline-block";
+  calendar.innerHTML = svg;
+  calendar.scrollLeft = calendar.scrollWidth;
 }
 
 function showPopup(event, textContent) {

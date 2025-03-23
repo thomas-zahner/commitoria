@@ -32,7 +32,7 @@ struct Names {
     gitlab: Option<String>,
     font_size: Option<usize>,
     cell_size: Option<usize>,
-    colour_strategy: Option<String>,
+    colour_strategy: Option<ColourStrategy>,
 }
 
 async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, Error> {
@@ -78,20 +78,8 @@ fn build_renderer(names: Query<Names>) -> Result<SvgRenderer, BuilderError> {
         builder.font_size(font_size);
     }
 
-    match names.0.colour_strategy {
-        Some(s) => {
-            let strategy = match s.as_str() {
-                "GitlabStrategy" => ColourStrategy::GitlabStrategy,
-                "InterpolationStrategy" => ColourStrategy::InterpolationStrategy {
-                    inactive_colour: Rgba::new(236, 236, 239, 255),
-                    active_colour: Rgba::new(48, 52, 112, 255),
-                },
-                unknown => Err(BuilderError::UnknownStrategy(unknown.to_owned()))?,
-            };
-
-            builder.colour_strategy(strategy);
-        }
-        None => {}
+    if let Some(strategy) = names.0.colour_strategy {
+        builder.colour_strategy(strategy);
     }
 
     Ok(builder.build()?)

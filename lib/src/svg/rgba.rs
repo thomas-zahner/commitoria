@@ -4,7 +4,9 @@ use std::{
     ops::{Add, Mul, Sub},
 };
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+use serde::Deserialize;
+
+#[derive(PartialEq, Eq, Debug, Clone, Deserialize)]
 pub struct Rgba(u8, u8, u8, u8);
 
 impl Rgba {

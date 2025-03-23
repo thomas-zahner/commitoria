@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 use super::rgba::Rgba;
 
 pub(crate) struct ContributionInfo {
@@ -5,7 +7,7 @@ pub(crate) struct ContributionInfo {
     pub(crate) count_today: usize,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize)]
 pub enum ColourStrategy {
     /// The way GitLab visualises contribution activity
     GitlabStrategy,

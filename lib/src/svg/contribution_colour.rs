@@ -71,10 +71,9 @@ fn get_interpolated_colour(
 
 #[cfg(test)]
 mod tests {
-    use super::ColourStrategy;
     use super::ColourStrategy::InterpolationStrategy;
+    use crate::svg::contribution_colour::ContributionInfo;
     use crate::svg::rgba::Rgba;
-    use crate::svg::ContributionInfo;
 
     #[test]
     fn interpolation() {

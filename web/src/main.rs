@@ -8,10 +8,7 @@ use axum::{
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
-    svg::{
-        contribution_colour::ColourStrategy, rgba::Rgba, SvgRenderer, SvgRendererBuilder,
-        SvgRendererBuilderError,
-    },
+    svg::{contribution_colour::ColourStrategy, SvgRenderer, SvgRendererBuilder},
     types::{ContributionActivity, Error},
 };
 use serde::Deserialize;

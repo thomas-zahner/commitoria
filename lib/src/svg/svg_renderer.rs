@@ -9,13 +9,13 @@ const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;
 const COLOUR_STRATEGY_DEFAULT: ColourStrategy = ColourStrategy::GitlabStrategy;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Builder {
-    font_size: Option<usize>,
-    cell_size: Option<usize>,
-    colour_strategy: Option<String>,
-    interpolation_strategy_active_colour: Option<String>,
-    interpolation_strategy_inactive_colour: Option<String>,
+    pub font_size: Option<usize>,
+    pub cell_size: Option<usize>,
+    pub colour_strategy: Option<String>,
+    pub interpolation_strategy_active_colour: Option<String>,
+    pub interpolation_strategy_inactive_colour: Option<String>,
 }
 
 impl Builder {

@@ -8,7 +8,10 @@ use axum::{
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
-    svg::{contribution_colour::ColourStrategy, SvgRenderer, SvgRendererBuilder},
+    svg::{
+        contribution_colour::ColourStrategy,
+        svg_renderer::{self, Builder, SvgRenderer},
+    },
     types::{ContributionActivity, Error},
 };
 use serde::Deserialize;
@@ -29,7 +32,7 @@ struct Names {
     gitlab: Option<String>,
     font_size: Option<usize>,
     cell_size: Option<usize>,
-    colour_strategy: Option<ColourStrategy>,
+    colour_strategy: Option<String>,
 }
 
 async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, Error> {
@@ -48,12 +51,12 @@ async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, 
 
 #[derive(Debug)]
 enum BuilderError {
-    SvgRendererBuilderError(SvgRendererBuilderError),
+    SvgRendererBuilderError(svg_renderer::BuilderError),
     UnknownStrategy(String),
 }
 
-impl From<SvgRendererBuilderError> for BuilderError {
-    fn from(value: SvgRendererBuilderError) -> Self {
+impl From<svg_renderer::BuilderError> for BuilderError {
+    fn from(value: svg_renderer::BuilderError) -> Self {
         Self::SvgRendererBuilderError(value)
     }
 }
@@ -65,19 +68,13 @@ impl From<BuilderError> for (StatusCode, String) {
 }
 
 fn build_renderer(names: Query<Names>) -> Result<SvgRenderer, BuilderError> {
-    let mut builder = SvgRendererBuilder::default();
-
-    if let Some(cell_size) = names.0.cell_size {
-        builder.cell_size(cell_size);
-    }
-
-    if let Some(font_size) = names.0.font_size {
-        builder.font_size(font_size);
-    }
-
-    if let Some(strategy) = names.0.colour_strategy {
-        builder.colour_strategy(strategy);
-    }
+    let mut builder = Builder {
+        cell_size: names.cell_size,
+        colour_strategy: names.colour_strategy.clone(),
+        font_size: names.font_size,
+        interpolation_strategy_active_colour: todo!(),
+        interpolation_strategy_inactive_colour: todo!(),
+    };
 
     Ok(builder.build()?)
 }

@@ -8,10 +8,7 @@ use axum::{
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
-    svg::{
-        contribution_colour::ColourStrategy,
-        svg_renderer::{self, Builder, SvgRenderer},
-    },
+    svg::svg_renderer::{Builder, SvgRenderer},
     types::{ContributionActivity, Error},
 };
 use serde::Deserialize;
@@ -27,15 +24,17 @@ macro_rules! static_file {
 }
 
 #[derive(Deserialize, Clone)]
-struct Names {
+struct CalendarQuery {
     github: Option<String>,
     gitlab: Option<String>,
     font_size: Option<usize>,
     cell_size: Option<usize>,
     colour_strategy: Option<String>,
+    active_colour: Option<String>,
+    inactive_colour: Option<String>,
 }
 
-async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, Error> {
+async fn get_calendar_data(names: Query<CalendarQuery>) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
     if let Some(name) = names.0.gitlab {
@@ -49,41 +48,27 @@ async fn get_calendar_data(names: Query<Names>) -> Result<ContributionActivity, 
     Ok(activity)
 }
 
-#[derive(Debug)]
-enum BuilderError {
-    SvgRendererBuilderError(svg_renderer::BuilderError),
-    UnknownStrategy(String),
-}
-
-impl From<svg_renderer::BuilderError> for BuilderError {
-    fn from(value: svg_renderer::BuilderError) -> Self {
-        Self::SvgRendererBuilderError(value)
+impl From<CalendarQuery> for Builder {
+    fn from(query: CalendarQuery) -> Self {
+        Builder {
+            cell_size: query.cell_size,
+            colour_strategy: query.colour_strategy.clone(),
+            font_size: query.font_size,
+            active_colour: query.active_colour.clone(),
+            inactive_colour: query.inactive_colour.clone(),
+        }
     }
 }
 
-impl From<BuilderError> for (StatusCode, String) {
-    fn from(error: BuilderError) -> Self {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", error))
-    }
-}
-
-fn build_renderer(names: Query<Names>) -> Result<SvgRenderer, BuilderError> {
-    let mut builder = Builder {
-        cell_size: names.cell_size,
-        colour_strategy: names.colour_strategy.clone(),
-        font_size: names.font_size,
-        interpolation_strategy_active_colour: todo!(),
-        interpolation_strategy_inactive_colour: todo!(),
-    };
-
-    Ok(builder.build()?)
-}
-
-async fn get_calendar_svg(names: Query<Names>) -> Result<impl IntoResponse, (StatusCode, String)> {
+async fn get_calendar_svg(
+    query: Query<CalendarQuery>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
-    let activity = get_calendar_data(names.clone()).await?;
-    Ok((headers, build_renderer(names)?.render(&activity)))
+    let activity = get_calendar_data(query.clone()).await?;
+    let builder: Builder = query.0.into();
+    let result: Result<SvgRenderer, Error> = builder.build().map_err(|e| e.into());
+    Ok((headers, result?.render(&activity)))
 }
 
 #[tokio::main]

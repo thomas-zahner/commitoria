@@ -44,7 +44,7 @@ impl Display for Rgba {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum StringToRgbaError {
     InvalidLength,
     NotAscii,

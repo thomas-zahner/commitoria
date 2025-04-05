@@ -1,3 +1,4 @@
+use crate::svg::svg_renderer::BuilderError;
 use reqwest::StatusCode;
 use scraper::error::SelectorErrorKind;
 
@@ -11,6 +12,13 @@ pub enum Error {
     UnableToParseJson(String),
     ReqwestError(String),
     UserNotFound,
+    BuilderError(BuilderError),
+}
+
+impl From<BuilderError> for Error {
+    fn from(error: BuilderError) -> Self {
+        Self::BuilderError(error)
+    }
 }
 
 impl From<Error> for (StatusCode, String) {

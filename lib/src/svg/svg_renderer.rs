@@ -14,8 +14,8 @@ pub struct Builder {
     pub font_size: Option<usize>,
     pub cell_size: Option<usize>,
     pub colour_strategy: Option<String>,
-    pub interpolation_strategy_active_colour: Option<String>,
-    pub interpolation_strategy_inactive_colour: Option<String>,
+    pub active_colour: Option<String>,
+    pub inactive_colour: Option<String>,
 }
 
 impl Builder {
@@ -24,11 +24,11 @@ impl Builder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum BuilderError {
+    UnknownColourStrategy,
     InterpolationParametersMissing,
     InvalidRgbaValue(StringToRgbaError),
-    UnknownColourStrategy,
 }
 
 impl From<StringToRgbaError> for BuilderError {
@@ -46,18 +46,13 @@ impl TryFrom<Builder> for SvgRenderer {
         let colour_strategy = match value.colour_strategy.as_ref().map(|s| s.as_str()) {
             None => COLOUR_STRATEGY_DEFAULT,
             Some("GitlabStrategy") => ColourStrategy::GitlabStrategy,
-            Some("InterpolationStrategy ") => {
-                match (
-                    value.interpolation_strategy_inactive_colour,
-                    value.interpolation_strategy_active_colour,
-                ) {
-                    (Some(inactive), Some(active)) => ColourStrategy::InterpolationStrategy {
-                        inactive_colour: inactive.try_into()?,
-                        active_colour: active.try_into()?,
-                    },
-                    _ => Err(BuilderError::InterpolationParametersMissing)?,
-                }
-            }
+            Some("InterpolationStrategy") => match (value.inactive_colour, value.active_colour) {
+                (Some(inactive), Some(active)) => ColourStrategy::InterpolationStrategy {
+                    inactive_colour: inactive.try_into()?,
+                    active_colour: active.try_into()?,
+                },
+                _ => Err(BuilderError::InterpolationParametersMissing)?,
+            },
             Some(_) => Err(BuilderError::UnknownColourStrategy)?,
         };
 

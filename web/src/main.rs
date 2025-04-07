@@ -85,6 +85,10 @@ async fn main() {
             static_file!("gitlab-calendar/calendar.js", "text/javascript"),
         )
         .route_service(
+            "/form.js",
+            static_file!("gitlab-calendar/form.js", "text/javascript"),
+        )
+        .route_service(
             "/main.css",
             static_file!("gitlab-calendar/main.css", "text/css"),
         );

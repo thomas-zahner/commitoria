@@ -1,16 +1,22 @@
 function colourStrategyChange(e) {
   const colourStrategy = document.querySelector("select#colour_strategy");
-  const inactiveColour = document.querySelector("input#inactive_colour");
-  const activeColour = document.querySelector("input#active_colour");
+  const inactiveColour = document.querySelector("#inactive_colour");
+  const activeColour = document.querySelector("#active_colour");
+
+  const inactiveColourInput = inactiveColour.querySelector("input");
+  const activeColourInput = activeColour.querySelector("input");
 
   if (colourStrategy.value === "InterpolationStrategy") {
-    inactiveColour.removeAttribute("hidden");
-    activeColour.removeAttribute("hidden");
+    inactiveColour.style.display = "unset";
+    activeColour.style.display = "unset";
 
-    inactiveColour.setAttribute("name", "inactive_colour");
-    activeColour.setAttribute("name", "active_colour");
+    inactiveColourInput.setAttribute("name", "inactive_colour");
+    activeColourInput.setAttribute("name", "active_colour");
   } else {
-    inactiveColour.setAttribute("hidden", "");
-    activeColour.setAttribute("hidden", "");
+    inactiveColour.style.display = "none";
+    activeColour.style.display = "none";
+
+    inactiveColourInput.removeAttribute("name");
+    activeColourInput.removeAttribute("name");
   }
 }

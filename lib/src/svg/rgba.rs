@@ -63,6 +63,7 @@ impl TryFrom<String> for Rgba {
     type Error = StringToRgbaError;
 
     fn try_from(mut value: String) -> Result<Self, Self::Error> {
+        const DEFAULT_ALPHA_VALUE: &str = "ff";
         use StringToRgbaError::*;
         fn convert_to_u8(value: &str) -> Result<u8, ParseIntError> {
             u8::from_str_radix(value, 16)
@@ -74,14 +75,18 @@ impl TryFrom<String> for Rgba {
 
         if !value.is_ascii() {
             Err(NotAscii)
-        } else if value.len() != 8 {
-            Err(InvalidLength)
         } else {
+            let alpha = match value.len() {
+                6 => DEFAULT_ALPHA_VALUE,
+                8 => &value[6..8],
+                _ => return Err(InvalidLength),
+            };
+
             Ok(Self(
                 convert_to_u8(&value[0..2])?,
                 convert_to_u8(&value[2..4])?,
                 convert_to_u8(&value[4..6])?,
-                convert_to_u8(&value[6..8])?,
+                convert_to_u8(alpha)?,
             ))
         }
     }
@@ -171,6 +176,22 @@ mod tests {
         assert_eq!(
             Rgba::try_from("cafe0042".to_string()),
             Ok(Rgba(202, 254, 0, 66))
+        );
+    }
+
+    #[test]
+    fn from_string_without_alpha() {
+        assert_eq!(
+            Rgba::try_from("cafeee".to_string()),
+            Ok(Rgba(202, 254, 238, 255))
+        );
+    }
+
+    #[test]
+    fn from_string_without_alpha_without_hashtag_prefix() {
+        assert_eq!(
+            Rgba::try_from("cafeee".to_string()),
+            Ok(Rgba(202, 254, 238, 255))
         );
     }
 

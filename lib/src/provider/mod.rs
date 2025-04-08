@@ -2,6 +2,8 @@ use crate::{source::DataSource, types::ContributionActivity, types::Error, types
 use std::future::Future;
 use time::{format_description::BorrowedFormatItem, macros::format_description, Date};
 
+#[cfg(feature = "git")]
+pub mod git;
 pub mod github;
 pub mod gitlab;
 

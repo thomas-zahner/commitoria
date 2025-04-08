@@ -2,6 +2,8 @@ use crate::{source::DataSource, types::ContributionActivity, types::Error, types
 use chrono::NaiveDate;
 use std::future::Future;
 
+#[cfg(feature = "git")]
+pub mod git;
 pub mod github;
 pub mod gitlab;
 

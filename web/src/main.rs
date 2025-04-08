@@ -1,10 +1,10 @@
 use axum::{
-    extract::Query,
     http::{HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
     routing::get,
     Router,
 };
+use axum_extra::extract::Query;
 use commitoria_lib::{
     provider::{github::Github, gitlab::Gitlab, GitProvider},
     source::ReqwestDataSource,
@@ -32,18 +32,21 @@ struct CalendarQuery {
     colour_strategy: Option<String>,
     active_colour: Option<String>,
     inactive_colour: Option<String>,
+    git_urls: Option<Vec<String>>,
 }
 
-async fn get_calendar_data(names: Query<CalendarQuery>) -> Result<ContributionActivity, Error> {
+async fn get_calendar_data(query: Query<CalendarQuery>) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
-    if let Some(name) = names.0.gitlab {
+    if let Some(name) = query.0.gitlab {
         activity += Gitlab::fetch(ReqwestDataSource {}, name).await?;
     }
 
-    if let Some(name) = names.0.github {
+    if let Some(name) = query.0.github {
         activity += Github::fetch(ReqwestDataSource {}, name).await?;
     }
+
+    todo!("Fetch raw git repositories {:?}", query.0.git_urls);
 
     Ok(activity)
 }

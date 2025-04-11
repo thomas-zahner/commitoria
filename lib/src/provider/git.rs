@@ -1,7 +1,10 @@
 use super::{GitProvider, Result};
 use crate::types::ContributionActivity;
 use git2::{build::RepoBuilder, FetchOptions, Repository, Sort};
-use std::path::Path;
+use std::{
+    path::Path,
+    time::{Instant, SystemTime},
+};
 
 pub struct Git {}
 
@@ -13,7 +16,6 @@ impl GitProvider for Git {
         let url = "https://github.com/alexcrichton/git2-rs";
 
         // TODO: is it possible to use the following?
-        // --bare
         // --shallow-since "1 year"
 
         let options = FetchOptions::new();
@@ -26,8 +28,16 @@ impl GitProvider for Git {
         revwalk.set_sorting(Sort::TIME).unwrap();
         revwalk.push_head().unwrap();
 
-        for commit in revwalk {
-            dbg!(commit.unwrap());
+        for rev in revwalk {
+            let commit = repo.find_commit(rev.unwrap()).unwrap();
+            dbg!(commit.time().seconds());
+            dbg!(commit.message());
+
+            // todo: use chrono or time crate for subtracting one year
+            const ONE_YEAR: usize = 60 * 60 * 24 * 365;
+            let x = SystemTime::from(ONE_YEAR);
+            let time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) - ONE_YEAR;
+            dbg!(time);
         }
 
         todo!()

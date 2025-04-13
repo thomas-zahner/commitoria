@@ -5,6 +5,7 @@ A tool for aggregating and visualising contribution activity from multiple sourc
 [![Contribution activity calendar](https://commitoria.thomaszahner.ch/api/calendar.svg?gitlab=thomas-zahner&github=thomas-zahner&font_size=14&cell_size=20&colour_strategy=InterpolationStrategy&inactive_colour=%23f6f5f4&active_colour=%23c061cb)](https://commitoria.thomaszahner.ch/calendar?gitlab=thomas-zahner&github=thomas-zahner&font_size=14&cell_size=20&colour_strategy=InterpolationStrategy&inactive_colour=%23f6f5f4&active_colour=%23c061cb)
 
 ✔️ GitHub
+
 ✔️ GitLab (gitlab.com)
 
 Warning: this project is in an early stage. The code is sparsely documented and subject to change.

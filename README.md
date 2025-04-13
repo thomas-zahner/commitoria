@@ -2,7 +2,12 @@
 
 A tool for aggregating and visualising contribution activity from multiple sources.
 
-Warning: this project is in a very early stage. The code is sparsely documented and subject to change.
+[![Contribution activity calendar](https://commitoria.thomaszahner.ch/api/calendar.svg?gitlab=thomas-zahner&github=thomas-zahner&font_size=14&cell_size=20&colour_strategy=InterpolationStrategy&inactive_colour=%23f6f5f4&active_colour=%23c061cb)](https://commitoria.thomaszahner.ch/calendar?gitlab=thomas-zahner&github=thomas-zahner&font_size=14&cell_size=20&colour_strategy=InterpolationStrategy&inactive_colour=%23f6f5f4&active_colour=%23c061cb)
+
+✔️ GitHub
+✔️ GitLab (gitlab.com)
+
+Warning: this project is in an early stage. The code is sparsely documented and subject to change.
 
 ## Why?
 
@@ -46,9 +51,7 @@ The library functions are exposed as a HTTP web server so users can utilise the 
 
 The repository has been deployed to [commitoria.thomaszahner.ch](https://commitoria.thomaszahner.ch).
 This allows anybody to create their customised activity calendar.
-You can easily include the SVG into your README or website, as illustrated below.
-
-[![Contribution activity calendar](https://commitoria.thomaszahner.ch/api/calendar.svg?gitlab=thomas-zahner&github=thomas-zahner&font_size=13&cell_size=20)](https://commitoria.thomaszahner.ch/calendar?gitlab=thomas-zahner&github=thomas-zahner&font_size=13&cell_size=20)
+You can easily include the SVG into your README or website, as illustrated in the beginning of this README.
 
 ## Data aggregation
 
@@ -66,7 +69,7 @@ Unfortunately, GitHub requires authentication for their REST/GraphQL API endpoin
 Notably they provide a GraphQL endpoint for contribution activity: https://docs.github.com/en/graphql/reference/objects#contributionscollection
 However, users might want to be able to skip authentication if possible.
 
-This is why we'll be using the contribution calendar graph directly, which is publicly disaplyed on all profiles (unless disabled).
+This is why we'll be using the contribution calendar graph directly, which is publicly displayed on all profiles (unless disabled).
 Using this approach is "hacky" because we need to extract data from an undocumented endpoint which might change without notice in the future,
 but this allows us to skip authentication.
 

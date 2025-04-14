@@ -1,10 +1,8 @@
 use super::{GitProvider, Result};
 use crate::types::ContributionActivity;
-use git2::{build::RepoBuilder, FetchOptions, Repository, Sort};
-use std::{
-    path::Path,
-    time::{Instant, SystemTime},
-};
+use chrono::{DateTime, Months};
+use git2::{build::RepoBuilder, FetchOptions, Sort};
+use std::{collections::BTreeMap, path::Path};
 
 pub struct Git {}
 
@@ -13,7 +11,7 @@ impl GitProvider for Git {
         data_source: S,
         user_name: String,
     ) -> Result<ContributionActivity> {
-        let url = "https://github.com/alexcrichton/git2-rs";
+        let url = "https://github.com/thomas-zahner/commitoria";
 
         // TODO: is it possible to use the following?
         // --shallow-since "1 year"
@@ -22,25 +20,37 @@ impl GitProvider for Git {
         let mut builder = RepoBuilder::new();
         builder.fetch_options(options).bare(true);
 
-        let repo = builder.clone(url, Path::new("/tmp/git2-rs")).unwrap();
+        let repo = builder
+            .clone(url, Path::new("/tmp/cloned-repository"))
+            .unwrap();
         let mut revwalk = repo.revwalk().unwrap();
 
         revwalk.set_sorting(Sort::TIME).unwrap();
         revwalk.push_head().unwrap();
 
-        for rev in revwalk {
-            let commit = repo.find_commit(rev.unwrap()).unwrap();
-            dbg!(commit.time().seconds());
-            dbg!(commit.message());
+        let one_year_ago = chrono::Local::now()
+            .date_naive()
+            .checked_sub_months(Months::new(12 * 6)) // todo
+            .unwrap();
 
-            // todo: use chrono or time crate for subtracting one year
-            const ONE_YEAR: usize = 60 * 60 * 24 * 365;
-            let x = SystemTime::from(ONE_YEAR);
-            let time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) - ONE_YEAR;
-            dbg!(time);
+        let mut result = BTreeMap::new();
+
+        for rev in revwalk.into_iter() {
+            let rev = *rev.as_ref().unwrap();
+            let commit = repo.find_commit(rev).unwrap();
+            let commit_time = DateTime::from_timestamp(commit.time().seconds(), 0)
+                .unwrap()
+                .date_naive();
+
+            if commit_time >= one_year_ago.try_into().unwrap()
+                && (commit.author().name() == Some(&user_name)
+                    || commit.author().email() == Some(&user_name))
+            {
+                *result.entry(commit_time).or_insert(0) += 1;
+            }
         }
 
-        todo!()
+        Ok(result.into())
     }
 }
 
@@ -51,6 +61,10 @@ mod tests {
 
     #[tokio::test]
     async fn git_repository() {
-        let result = Git::fetch(FixtureDataSource {}, "".into()).await.unwrap();
+        let result = Git::fetch(FixtureDataSource {}, "Thomas Zahner".into())
+            .await
+            .unwrap();
+
+        todo!("{:?}", result);
     }
 }

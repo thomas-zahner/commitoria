@@ -1,14 +1,14 @@
+use chrono::NaiveDate;
 use std::{
     collections::BTreeMap,
     ops::{Add, AddAssign},
 };
-use time::Date;
 
 #[cfg(feature = "serde")]
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub struct ContributionActivity(BTreeMap<Date, usize>);
+pub struct ContributionActivity(BTreeMap<NaiveDate, usize>);
 
 #[cfg(feature = "serde")]
 impl Serialize for ContributionActivity {
@@ -29,7 +29,7 @@ impl ContributionActivity {
         Self(BTreeMap::new())
     }
 
-    pub fn get(&self, date: &Date) -> Option<usize> {
+    pub fn get(&self, date: &NaiveDate) -> Option<usize> {
         self.0.get(date).map(|c| c.clone())
     }
 
@@ -42,8 +42,8 @@ impl ContributionActivity {
     }
 }
 
-impl From<BTreeMap<Date, usize>> for ContributionActivity {
-    fn from(value: BTreeMap<Date, usize>) -> Self {
+impl From<BTreeMap<NaiveDate, usize>> for ContributionActivity {
+    fn from(value: BTreeMap<NaiveDate, usize>) -> Self {
         Self(value)
     }
 }
@@ -74,19 +74,19 @@ impl AddAssign for ContributionActivity {
 #[cfg(test)]
 mod tests {
     use super::ContributionActivity;
+    use chrono::NaiveDate;
     use std::collections::BTreeMap;
-    use time::Date;
 
     #[test]
     fn aggregate() {
-        let first = Date::from_calendar_date(2024, time::Month::January, 1).unwrap();
-        let second = Date::from_calendar_date(2024, time::Month::January, 2).unwrap();
+        let first = NaiveDate::from_ymd_opt(2024, 01, 01).unwrap();
+        let second = NaiveDate::from_ymd_opt(2024, 01, 02).unwrap();
         let activity = ContributionActivity(BTreeMap::from([(first, 1), (second, 2)]))
             + ContributionActivity(BTreeMap::from([(first, 3)]));
 
         assert_eq!(activity.get(&first), Some(4));
         assert_eq!(activity.get(&second), Some(2));
-        let third = Date::from_calendar_date(2024, time::Month::January, 3).unwrap();
+        let third = NaiveDate::from_ymd_opt(2024, 01, 03).unwrap();
         assert_eq!(activity.get(&third), None);
     }
 }

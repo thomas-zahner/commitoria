@@ -3,8 +3,8 @@ use crate::{
     source::{DataSource, Source},
     types::ContributionActivity,
 };
+use chrono::NaiveDate;
 use std::collections::{BTreeMap, HashMap};
-use time::Date;
 
 use super::{GitProvider, Result};
 
@@ -21,7 +21,7 @@ impl GitProvider for Gitlab {
 
         Ok(parsed
             .into_iter()
-            .map(|(date, contribution_count)| -> Result<(Date, usize)> {
+            .map(|(date, contribution_count)| -> Result<(NaiveDate, usize)> {
                 Ok((parse_date(&date)?, contribution_count))
             })
             .collect::<Result<BTreeMap<_, _>>>()?
@@ -41,17 +41,17 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            result.get(&Date::from_calendar_date(2024, time::Month::January, 22).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 01, 22).unwrap()),
             Some(1)
         );
 
         assert_eq!(
-            result.get(&Date::from_calendar_date(2024, time::Month::February, 4).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 02, 04).unwrap()),
             Some(2)
         );
 
         assert_eq!(
-            result.get(&Date::from_calendar_date(2024, time::Month::January, 1).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 01, 01).unwrap()),
             None
         );
         assert_eq!(result.contribution_count(), 21);

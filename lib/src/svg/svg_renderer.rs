@@ -3,7 +3,6 @@ use super::rgba::StringToRgbaError;
 use crate::svg::contribution_colour::ColourStrategy;
 use crate::types::ContributionActivity;
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
-use time::Date;
 
 const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;
@@ -85,7 +84,7 @@ const MONTH_NAMES: [&str; 12] = [
 #[derive(Debug)]
 struct Data {
     count: usize,
-    date: Date,
+    date: NaiveDate,
 }
 
 struct MonthText {
@@ -143,10 +142,10 @@ impl SvgRenderer {
                 }
             }
 
-            let date = Date::from_calendar_date(
+            let date = NaiveDate::from_ymd_opt(
                 day.year(),
                 (day.month() as u8).try_into().unwrap(),
-                day.day() as u8,
+                day.day(),
             )
             .unwrap();
 
@@ -216,7 +215,8 @@ impl SvgRenderer {
                     1 => "1 contribution".to_owned(),
                     i => format!("{} contributions", i),
                 });
-                let y = self.day_size_with_space * ((day.date.weekday().number_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
+
+                let y = self.day_size_with_space * ((day.date.weekday().num_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
                 let colour = self.colour_strategy.get_colour(ContributionInfo {
                     average_count_per_day ,
@@ -260,7 +260,7 @@ impl SvgRenderer {
 
 #[cfg(test)]
 mod tests {
-    use time::Date;
+    use chrono::NaiveDate;
 
     use super::{Builder, SvgRenderer};
     use crate::{
@@ -287,31 +287,31 @@ mod tests {
         let data = vec![vec![
             Data {
                 count: 0,
-                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 2).unwrap(),
+                date: NaiveDate::from_ymd_opt(2024, 12.try_into().unwrap(), 2).unwrap(),
             },
             Data {
                 count: 0,
-                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 3).unwrap(),
+                date: NaiveDate::from_ymd_opt(2024, 12.try_into().unwrap(), 3).unwrap(),
             },
             Data {
                 count: 1,
-                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 4).unwrap(),
+                date: NaiveDate::from_ymd_opt(2024, 12.try_into().unwrap(), 4).unwrap(),
             },
             Data {
                 count: 2,
-                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 5).unwrap(),
+                date: NaiveDate::from_ymd_opt(2024, 12.try_into().unwrap(), 5).unwrap(),
             },
             Data {
                 count: 17,
-                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 6).unwrap(),
+                date: NaiveDate::from_ymd_opt(2024, 12.try_into().unwrap(), 6).unwrap(),
             },
             Data {
                 count: 0,
-                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 7).unwrap(),
+                date: NaiveDate::from_ymd_opt(2024, 12.try_into().unwrap(), 7).unwrap(),
             },
             Data {
                 count: 0,
-                date: Date::from_calendar_date(2024, 12.try_into().unwrap(), 8).unwrap(),
+                date: NaiveDate::from_ymd_opt(2024, 12.try_into().unwrap(), 8).unwrap(),
             },
         ]];
 

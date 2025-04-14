@@ -60,7 +60,7 @@ impl GitProvider for Github {
 mod tests {
     use super::*;
     use crate::source::{FixtureDataSource, ReqwestDataSource};
-    use time::Date;
+    use chrono::NaiveDate;
 
     #[tokio::test]
     async fn contributions_fixture() {
@@ -70,11 +70,11 @@ mod tests {
 
         assert_eq!(result.active_days(), 370);
         assert_eq!(
-            result.get(&Date::from_calendar_date(2023, time::Month::December, 10).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2023, 12, 10).unwrap()),
             Some(0)
         );
         assert_eq!(
-            result.get(&Date::from_calendar_date(2024, time::Month::May, 19).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 05, 19).unwrap()),
             Some(1)
         );
         assert_eq!(result.contribution_count(), 191);

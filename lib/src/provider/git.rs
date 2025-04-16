@@ -1,6 +1,6 @@
 use super::{GitProvider, Result};
-use crate::types::ContributionActivity;
-use chrono::{DateTime, Months};
+use crate::types::{ContributionActivity, YEAR};
+use chrono::DateTime;
 use git2::{build::RepoBuilder, FetchOptions, Sort};
 use std::{collections::BTreeMap, path::Path};
 
@@ -20,29 +20,25 @@ impl GitProvider for Git {
         let mut builder = RepoBuilder::new();
         builder.fetch_options(options).bare(true);
 
-        let repo = builder
-            .clone(url, Path::new("/tmp/cloned-repository"))
-            .unwrap();
-        let mut revwalk = repo.revwalk().unwrap();
+        let repo = builder.clone(url, Path::new("/tmp/cloned-repository"))?;
+        let mut revwalk = repo.revwalk()?;
 
-        revwalk.set_sorting(Sort::TIME).unwrap();
-        revwalk.push_head().unwrap();
-
-        let one_year_ago = chrono::Local::now()
-            .date_naive()
-            .checked_sub_months(Months::new(12 * 6)) // todo
-            .unwrap();
+        revwalk.set_sorting(Sort::TIME)?;
+        revwalk.push_head()?;
 
         let mut result = BTreeMap::new();
+        let one_year_ago = chrono::Local::now().date_naive() - YEAR;
 
         for rev in revwalk.into_iter() {
-            let rev = *rev.as_ref().unwrap();
-            let commit = repo.find_commit(rev).unwrap();
+            let rev = *rev.as_ref()?;
+            let commit = repo.find_commit(rev)?;
             let commit_time = DateTime::from_timestamp(commit.time().seconds(), 0)
-                .unwrap()
+                .ok_or(super::Error::UnableToParseDate(
+                    "Invalid timestamp encountered".into(),
+                ))?
                 .date_naive();
 
-            if commit_time >= one_year_ago.try_into().unwrap()
+            if commit_time >= one_year_ago
                 && (commit.author().name() == Some(&user_name)
                     || commit.author().email() == Some(&user_name))
             {

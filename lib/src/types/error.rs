@@ -11,6 +11,7 @@ pub enum Error {
     UnableToParseDate(String),
     UnableToParseJson(String),
     ReqwestError(String),
+    GitError(String),
     UserNotFound,
     BuilderError(BuilderError),
 }
@@ -36,5 +37,19 @@ impl From<SelectorErrorKind<'_>> for Error {
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         Self::ReqwestError(value.to_string())
+    }
+}
+
+#[cfg(feature = "git")]
+impl From<git2::Error> for Error {
+    fn from(value: git2::Error) -> Self {
+        Self::GitError(value.to_string())
+    }
+}
+
+#[cfg(feature = "git")]
+impl From<&git2::Error> for Error {
+    fn from(value: &git2::Error) -> Self {
+        Self::GitError(value.to_string())
     }
 }

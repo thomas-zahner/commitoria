@@ -1,8 +1,8 @@
 use super::contribution_colour::ContributionInfo;
 use super::rgba::StringToRgbaError;
-use crate::svg::contribution_colour::ColourStrategy;
 use crate::types::ContributionActivity;
-use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
+use crate::{svg::contribution_colour::ColourStrategy, types::YEAR};
+use chrono::{Datelike, Days, NaiveDate, Weekday};
 
 const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;
@@ -120,11 +120,7 @@ impl SvgRenderer {
         let mut group = 0;
         let mut result: Vec<Vec<Data>> = vec![vec![]]; // todo: functional instead of this weird imperative style
         let mut months: Vec<MonthText> = vec![];
-
-        let mut day = last_day
-            .clone()
-            .checked_sub_months(Months::new(12))
-            .unwrap();
+        let mut day = last_day.clone() - YEAR;
 
         while day <= last_day {
             if day.weekday() == FIRST_DAY_OF_WEEK {

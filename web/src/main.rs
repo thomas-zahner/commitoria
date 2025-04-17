@@ -6,7 +6,12 @@ use axum::{
 };
 use axum_extra::extract::Query;
 use commitoria_lib::{
-    provider::{github::Github, gitlab::Gitlab, GitProvider},
+    provider::{
+        git::{Repository, RepositoryInfo},
+        github::Github,
+        gitlab::Gitlab,
+        GitProvider,
+    },
     source::ReqwestDataSource,
     svg::svg_renderer::{Builder, SvgRenderer},
     types::{ContributionActivity, Error},
@@ -32,7 +37,7 @@ struct CalendarQuery {
     colour_strategy: Option<String>,
     active_colour: Option<String>,
     inactive_colour: Option<String>,
-    git_urls: Option<Vec<String>>,
+    bare_repository: Option<Vec<String>>,
 }
 
 async fn get_calendar_data(query: Query<CalendarQuery>) -> Result<ContributionActivity, Error> {
@@ -46,7 +51,16 @@ async fn get_calendar_data(query: Query<CalendarQuery>) -> Result<ContributionAc
         activity += Github::fetch(ReqwestDataSource {}, name).await?;
     }
 
-    todo!("Fetch raw git repositories {:?}", query.0.git_urls);
+    if let Some(repositories) = query.0.bare_repository {
+        let infos = repositories
+            .into_iter()
+            .map(|u| serde_json::from_str(&u))
+            .collect::<serde_json::Result<Vec<RepositoryInfo>>>()?;
+
+        for info in infos {
+            activity += Repository::new().fetch(info).await?;
+        }
+    }
 
     Ok(activity)
 }

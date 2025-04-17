@@ -1,5 +1,5 @@
 use crate::{
-    provider::{parse_date, Error},
+    provider::parse_date,
     source::{DataSource, Source},
     types::ContributionActivity,
 };
@@ -16,8 +16,7 @@ impl GitProvider for Gitlab {
         user_name: String,
     ) -> Result<ContributionActivity> {
         let json = data_source.fetch(Source::GitlabUser(user_name)).await?;
-        let parsed: HashMap<String, usize> =
-            serde_json::from_str(&json).map_err(|e| Error::UnableToParseJson(e.to_string()))?;
+        let parsed: HashMap<String, usize> = serde_json::from_str(&json)?;
 
         Ok(parsed
             .into_iter()

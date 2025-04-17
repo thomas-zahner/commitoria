@@ -1,45 +1,41 @@
-use super::{GitProvider, Result};
+use super::Result;
 use crate::types::{ContributionActivity, Error, YEAR};
 use chrono::DateTime;
 use git2::{build::RepoBuilder, FetchOptions, Sort};
+use serde::Deserialize;
 use std::{collections::BTreeMap, path::PathBuf};
 use uuid::Uuid;
 
-pub struct Git {}
-
-struct TemporaryPath(PathBuf);
-
-impl TemporaryPath {
-    fn new() -> Self {
-        let path_string = format!("/tmp/{}", Uuid::new_v4());
-        Self(PathBuf::from(path_string))
-    }
+#[derive(Clone, Debug, Deserialize)]
+pub struct RepositoryInfo {
+    url: String,
+    user_name: String,
 }
 
-impl Drop for TemporaryPath {
+pub struct Repository(PathBuf);
+
+impl Drop for Repository {
     fn drop(&mut self) {
         if let Err(e) = std::fs::remove_dir_all(&self.0) {
-            eprintln!("{e}");
+            eprintln!("Failed to remove directory when repository was dropped: {e}");
         }
     }
 }
 
-impl GitProvider for Git {
-    async fn fetch<S: crate::source::DataSource>(
-        data_source: S,
-        user_name: String,
-    ) -> Result<ContributionActivity> {
-        let url = "https://github.com/thomas-zahner/commitoria";
+impl Repository {
+    pub fn new() -> Self {
+        let path_string = format!("/tmp/{}", Uuid::new_v4());
+        Self(PathBuf::from(path_string))
+    }
 
-        // TODO: is it possible to use the following?
-        // --shallow-since "1 year"
-
+    pub async fn fetch(&self, info: RepositoryInfo) -> Result<ContributionActivity> {
         let options = FetchOptions::new();
         let mut builder = RepoBuilder::new();
         builder.fetch_options(options).bare(true);
+        // TODO: ideally we want to use the option `--shallow-since "1 year"`
+        // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
 
-        let repository_path = TemporaryPath::new();
-        let repo = builder.clone(url, &repository_path.0)?;
+        let repo = builder.clone(&info.url, &self.0)?;
         let mut revwalk = repo.revwalk()?;
 
         revwalk.set_sorting(Sort::TIME)?;
@@ -58,8 +54,8 @@ impl GitProvider for Git {
                 .date_naive();
 
             if commit_time >= one_year_ago
-                && (commit.author().name() == Some(&user_name)
-                    || commit.author().email() == Some(&user_name))
+                && (commit.author().name() == Some(&info.user_name)
+                    || commit.author().email() == Some(&info.user_name))
             {
                 *result.entry(commit_time).or_insert(0) += 1;
             }
@@ -71,12 +67,17 @@ impl GitProvider for Git {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::source::FixtureDataSource;
+    use crate::provider::git::{Repository, RepositoryInfo};
 
     #[tokio::test]
     async fn git_repository() {
-        let result = Git::fetch(FixtureDataSource {}, "Thomas Zahner".into())
+        let repository = Repository::new();
+
+        let result = repository
+            .fetch(RepositoryInfo {
+                url: "https://github.com/thomas-zahner/commitoria".into(),
+                user_name: "Thomas Zahner".into(),
+            })
             .await
             .unwrap();
 

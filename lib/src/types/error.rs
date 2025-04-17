@@ -40,6 +40,12 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+impl From<serde_json::Error> for Error {
+    fn from(value: serde_json::Error) -> Self {
+        Self::UnableToParseJson(value.to_string())
+    }
+}
+
 #[cfg(feature = "git")]
 impl From<git2::Error> for Error {
     fn from(value: git2::Error) -> Self {

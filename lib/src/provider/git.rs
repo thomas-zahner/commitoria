@@ -1,6 +1,6 @@
 use super::Result;
 use crate::types::{ContributionActivity, Error, YEAR};
-use chrono::DateTime;
+use chrono::{DateTime, NaiveDate};
 use git2::{build::RepoBuilder, FetchOptions, Sort};
 use serde::Deserialize;
 use std::{collections::BTreeMap, path::PathBuf};
@@ -12,6 +12,7 @@ pub struct RepositoryInfo {
     user_name: String,
 }
 
+/// Represents a Git repository to be cloned and analysed
 pub struct Repository(PathBuf);
 
 impl Drop for Repository {
@@ -28,7 +29,18 @@ impl Repository {
         Self(PathBuf::from(path_string))
     }
 
-    pub async fn fetch(&self, info: RepositoryInfo) -> Result<ContributionActivity> {
+    /// Clone repository and extract `ContributionActivity`.
+    /// This function takes ownership of `self` so that the created directory is cleand up afterwards.
+    pub async fn fetch(self, info: RepositoryInfo) -> Result<ContributionActivity> {
+        let one_year_ago = chrono::Local::now().date_naive() - YEAR;
+        self.fetch_since(info, one_year_ago).await
+    }
+
+    async fn fetch_since(
+        self,
+        info: RepositoryInfo,
+        since: NaiveDate,
+    ) -> Result<ContributionActivity> {
         let options = FetchOptions::new();
         let mut builder = RepoBuilder::new();
         builder.fetch_options(options).bare(true);
@@ -42,7 +54,6 @@ impl Repository {
         revwalk.push_head()?;
 
         let mut result = BTreeMap::new();
-        let one_year_ago = chrono::Local::now().date_naive() - YEAR;
 
         for rev in revwalk.into_iter() {
             let rev = *rev.as_ref()?;
@@ -53,7 +64,7 @@ impl Repository {
                 ))?
                 .date_naive();
 
-            if commit_time >= one_year_ago
+            if commit_time >= since
                 && (commit.author().name() == Some(&info.user_name)
                     || commit.author().email() == Some(&info.user_name))
             {
@@ -68,19 +79,32 @@ impl Repository {
 #[cfg(test)]
 mod tests {
     use crate::provider::git::{Repository, RepositoryInfo};
+    use chrono::NaiveDate;
 
     #[tokio::test]
     async fn git_repository() {
         let repository = Repository::new();
+        let since = NaiveDate::from_ymd_opt(2024, 01, 01).unwrap();
 
         let result = repository
-            .fetch(RepositoryInfo {
-                url: "https://github.com/thomas-zahner/commitoria".into(),
-                user_name: "Thomas Zahner".into(),
-            })
+            .fetch_since(
+                RepositoryInfo {
+                    url: "https://github.com/thomas-zahner/commitoria".into(),
+                    user_name: "Thomas Zahner".into(),
+                },
+                since,
+            )
             .await
             .unwrap();
 
-        todo!("{:?}", result);
+        assert!(result.contribution_count() > 100);
+        assert_eq!(
+            result.get(&NaiveDate::from_ymd_opt(2024, 12, 12).unwrap()),
+            None
+        );
+        assert_eq!(
+            result.get(&NaiveDate::from_ymd_opt(2024, 12, 13).unwrap()),
+            Some(3)
+        );
     }
 }

@@ -31,7 +31,10 @@ impl GitProvider for Gitlab {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::source::{FixtureDataSource, ReqwestDataSource};
+    use crate::{
+        source::{FixtureDataSource, ReqwestDataSource},
+        types::Error,
+    };
 
     #[tokio::test]
     async fn contributions_fixture() {

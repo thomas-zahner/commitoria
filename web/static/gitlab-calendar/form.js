@@ -40,6 +40,7 @@ function addRepositoryLine() {
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "X";
   deleteButton.setAttribute("title", "Remove repository");
+  deleteButton.setAttribute("type", "button");
   deleteButton.onclick = () => repository.remove();
 
   repository.appendChild(username);
@@ -66,6 +67,7 @@ function onSubmit(event) {
     const user_name = repository.querySelector(".username").value;
     const url = repository.querySelector(".url").value;
     params.append("bare_repository", JSON.stringify({ user_name, url }));
-    window.location = "/calendar?" + params.toString();
   }
+
+  window.location = "/calendar?" + params.toString();
 }

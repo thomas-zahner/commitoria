@@ -4,6 +4,7 @@ use chrono::{DateTime, NaiveDate};
 use git2::{build::RepoBuilder, FetchOptions, Sort};
 use serde::Deserialize;
 use std::{collections::BTreeMap, path::PathBuf, sync::Mutex};
+use tokio::task;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -28,7 +29,7 @@ impl Drop for Repository {
 
 impl Repository {
     /// Clones the specified Git repository by URL
-    pub fn new(url: String) -> Result<Self> {
+    pub async fn new(url: String) -> Result<Self> {
         let mut builder = RepoBuilder::new();
         let options = FetchOptions::new();
         builder.fetch_options(options).bare(true);
@@ -36,7 +37,9 @@ impl Repository {
         // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
 
         let path = PathBuf::from(format!("/tmp/{}", Uuid::new_v4()));
-        let repository = Mutex::new(builder.clone(&url, &path)?);
+
+        let result = task::block_in_place(|| builder.clone(&url, &path));
+        let repository = Mutex::new(result?);
         Ok(Self { path, repository })
     }
 

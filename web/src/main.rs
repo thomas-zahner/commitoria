@@ -58,7 +58,9 @@ async fn get_calendar_data(query: Query<CalendarQuery>) -> Result<ContributionAc
             .collect::<serde_json::Result<Vec<RepositoryInfo>>>()?;
 
         for info in infos {
-            activity += Repository::new().fetch(info).await?;
+            activity += Repository::new(info.url)?
+                .get_activity(info.user_name)
+                .await?;
         }
     }
 

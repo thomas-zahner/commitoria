@@ -14,14 +14,11 @@ pub struct RepositoryInfo {
 }
 
 /// Represents a Git repository to be cloned and analysed
-pub struct Repository {
-    path: PathBuf,
-    repository: Mutex<git2::Repository>,
-}
+pub struct Repository(Mutex<git2::Repository>);
 
 impl Drop for Repository {
     fn drop(&mut self) {
-        if let Err(e) = std::fs::remove_dir_all(&self.path) {
+        if let Err(e) = std::fs::remove_dir_all(self.0.lock().unwrap().path()) {
             eprintln!("Failed to remove directory when repository was dropped: {e}");
         }
     }
@@ -30,17 +27,18 @@ impl Drop for Repository {
 impl Repository {
     /// Clones the specified Git repository by URL
     pub async fn new(url: String) -> Result<Self> {
-        let mut builder = RepoBuilder::new();
-        let options = FetchOptions::new();
-        builder.fetch_options(options).bare(true);
-        // TODO: ideally we want to use the option `--shallow-since "1 year"`
-        // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
-
         let path = PathBuf::from(format!("/tmp/{}", Uuid::new_v4()));
+        let result = task::spawn_blocking(move || {
+            let mut builder = RepoBuilder::new();
+            let options = FetchOptions::new();
+            builder.fetch_options(options).bare(true);
 
-        let result = task::block_in_place(|| builder.clone(&url, &path));
-        let repository = Mutex::new(result?);
-        Ok(Self { path, repository })
+            // TODO: ideally we want to use the option `--shallow-since "1 year"`
+            // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
+
+            builder.clone(&url, &path)
+        });
+        Ok(Self(Mutex::new(result.await.unwrap()?)))
     }
 
     /// Get activity of the specified `user` in the last year.
@@ -55,7 +53,7 @@ impl Repository {
         user: String,
         since: NaiveDate,
     ) -> Result<ContributionActivity> {
-        let repository = self.repository.lock().unwrap();
+        let repository = self.0.lock().unwrap();
         let mut revwalk = repository.revwalk()?;
 
         revwalk.set_sorting(Sort::TIME)?;
@@ -90,7 +88,8 @@ mod tests {
 
     #[tokio::test]
     async fn git_repository() {
-        let repository = Repository::new("https://github.com/thomas-zahner/commitoria".into());
+        let repository =
+            Repository::new("https://github.com/thomas-zahner/commitoria".into()).await;
         let since = NaiveDate::from_ymd_opt(2024, 01, 01).unwrap();
 
         let result = repository

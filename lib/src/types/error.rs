@@ -14,6 +14,7 @@ pub enum Error {
     GitError(String),
     UserNotFound,
     BuilderError(BuilderError),
+    RepositoryCloningTimedOut,
 }
 
 impl From<BuilderError> for Error {

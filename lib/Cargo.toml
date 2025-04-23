@@ -17,4 +17,4 @@ uuid = { version = "1.16.0", optional = true, features = ["v4"] }
 [features]
 serde = ["dep:serde"]
 svg = ["dep:chrono"]
-git = ["dep:git2", "dep:uuid"]
+git = ["dep:chrono", "dep:git2", "dep:uuid"]

@@ -3,8 +3,13 @@ use crate::types::{ContributionActivity, Error, YEAR};
 use chrono::{DateTime, NaiveDate};
 use git2::{build::RepoBuilder, FetchOptions, Sort};
 use serde::Deserialize;
-use std::{collections::BTreeMap, path::PathBuf, sync::Mutex};
-use tokio::task;
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+    sync::Mutex,
+    time::Duration,
+};
+use tokio::{task, time::timeout};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -16,10 +21,17 @@ pub struct RepositoryInfo {
 /// Represents a Git repository to be cloned and analysed
 pub struct Repository(Mutex<git2::Repository>);
 
+fn try_remove_path(path: &Path) {
+    if let Err(e) = std::fs::remove_dir_all(path) {
+        eprintln!("Failed to remove directory when repository was dropped: {e}");
+    }
+}
+
 impl Drop for Repository {
     fn drop(&mut self) {
-        if let Err(e) = std::fs::remove_dir_all(self.0.lock().unwrap().path()) {
-            eprintln!("Failed to remove directory when repository was dropped: {e}");
+        match self.0.lock() {
+            Err(e) => eprintln!("{e}"),
+            Ok(repository) => try_remove_path(repository.path()),
         }
     }
 }
@@ -28,6 +40,7 @@ impl Repository {
     /// Clones the specified Git repository by URL
     pub async fn new(url: String) -> Result<Self> {
         let path = PathBuf::from(format!("/tmp/{}", Uuid::new_v4()));
+        let path_clone = path.clone();
         let result = task::spawn_blocking(move || {
             let mut builder = RepoBuilder::new();
             let options = FetchOptions::new();
@@ -36,9 +49,16 @@ impl Repository {
             // TODO: ideally we want to use the option `--shallow-since "1 year"`
             // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
 
-            builder.clone(&url, &path)
+            builder.clone(&url, &path.clone())
         });
-        Ok(Self(Mutex::new(result.await.unwrap()?)))
+
+        match timeout(Duration::from_millis(2_000), result).await {
+            Ok(result) => Ok(Self(Mutex::new(result.unwrap()?))),
+            Err(_) => {
+                try_remove_path(&path_clone);
+                Err(Error::RepositoryCloningTimedOut)
+            }
+        }
     }
 
     /// Get activity of the specified `user` in the last year.

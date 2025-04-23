@@ -12,6 +12,8 @@ use std::{
 use tokio::{task, time::timeout};
 use uuid::Uuid;
 
+const CLONE_TIMEOUT: Duration = Duration::from_millis(5_000);
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct RepositoryInfo {
     pub url: String,
@@ -52,7 +54,7 @@ impl Repository {
             builder.clone(&url, &path.clone())
         });
 
-        match timeout(Duration::from_millis(2_000), result).await {
+        match timeout(CLONE_TIMEOUT, result).await {
             Ok(result) => Ok(Self(Mutex::new(result.unwrap()?))),
             Err(_) => {
                 try_remove_path(&path_clone);

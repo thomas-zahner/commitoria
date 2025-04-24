@@ -37,10 +37,13 @@ impl Drop for Repository {
     }
 }
 
-fn register_timeout_callback(options: &mut FetchOptions<'_>) {
+fn is_timed_out(begin: Instant) -> bool {
+    Instant::now() - begin > CLONE_TIMEOUT
+}
+
+fn register_timeout_callback(options: &mut FetchOptions<'_>, begin: Instant) {
     let mut callbacks = RemoteCallbacks::default();
-    let begin = Instant::now();
-    callbacks.transfer_progress(move |_| Instant::now() - begin < CLONE_TIMEOUT);
+    callbacks.transfer_progress(move |_| !is_timed_out(begin));
     options.remote_callbacks(callbacks);
 }
 
@@ -51,12 +54,19 @@ impl Repository {
         let mut builder = RepoBuilder::new();
         let mut options = FetchOptions::new();
 
-        register_timeout_callback(&mut options);
+        let begin = Instant::now();
+        register_timeout_callback(&mut options, begin);
         builder.fetch_options(options).bare(true);
+
         // TODO: ideally we want to use the option `--shallow-since "1 year"`
         // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
 
         let result = task::block_in_place(move || builder.clone(&url, &path.clone()));
+        let result = result.map_err(|e| match e {
+            git2::Error { .. } if is_timed_out(begin) => Error::RepositoryCloningTimedOut,
+            e => e.into(),
+        });
+
         Ok(Self(Mutex::new(result?)))
     }
 

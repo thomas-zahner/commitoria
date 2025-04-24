@@ -115,7 +115,7 @@ mod tests {
     use crate::provider::git::Repository;
     use chrono::NaiveDate;
 
-    #[tokio::test]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     async fn git_repository() {
         let repository =
             Repository::new("https://github.com/thomas-zahner/commitoria".into()).await;

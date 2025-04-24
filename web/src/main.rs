@@ -72,10 +72,10 @@ impl From<CalendarQuery> for Builder {
     fn from(query: CalendarQuery) -> Self {
         Builder {
             cell_size: query.cell_size,
-            colour_strategy: query.colour_strategy.clone(),
+            colour_strategy: query.colour_strategy,
             font_size: query.font_size,
-            active_colour: query.active_colour.clone(),
-            inactive_colour: query.inactive_colour.clone(),
+            active_colour: query.active_colour,
+            inactive_colour: query.inactive_colour,
         }
     }
 }

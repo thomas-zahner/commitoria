@@ -40,18 +40,18 @@ struct CalendarQuery {
     bare_repository: Option<Vec<String>>,
 }
 
-async fn get_calendar_data(query: Query<CalendarQuery>) -> Result<ContributionActivity, Error> {
+async fn get_calendar_data(query: CalendarQuery) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
-    if let Some(name) = query.0.gitlab {
+    if let Some(name) = query.gitlab {
         activity += Gitlab::fetch(ReqwestDataSource {}, name).await?;
     }
 
-    if let Some(name) = query.0.github {
+    if let Some(name) = query.github {
         activity += Github::fetch(ReqwestDataSource {}, name).await?;
     }
 
-    if let Some(repositories) = query.0.bare_repository {
+    if let Some(repositories) = query.bare_repository {
         let infos = repositories
             .into_iter()
             .map(|u| serde_json::from_str(&u))
@@ -81,12 +81,12 @@ impl From<CalendarQuery> for Builder {
 }
 
 async fn get_calendar_svg(
-    query: Query<CalendarQuery>,
+    Query(query): Query<CalendarQuery>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
     let activity = get_calendar_data(query.clone()).await?;
-    let builder: Builder = query.0.into();
+    let builder: Builder = query.into();
     let result: Result<SvgRenderer, Error> = builder.build().map_err(|e| e.into());
     Ok((headers, result?.render(&activity)))
 }

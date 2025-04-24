@@ -40,29 +40,33 @@ struct CalendarQuery {
     bare_repository: Option<Vec<String>>,
 }
 
+impl CalendarQuery {
+    fn bare_repositories(&self) -> serde_json::Result<Vec<RepositoryInfo>> {
+        self.bare_repository
+            .as_ref()
+            .unwrap_or(&Vec::new())
+            .iter()
+            .map(|u| serde_json::from_str(&u))
+            .collect::<serde_json::Result<Vec<RepositoryInfo>>>()
+    }
+}
+
 async fn get_calendar_data(query: CalendarQuery) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
-    if let Some(name) = query.gitlab {
-        activity += Gitlab::fetch(ReqwestDataSource {}, name).await?;
+    if let Some(name) = &query.gitlab {
+        activity += Gitlab::fetch(ReqwestDataSource {}, name.clone()).await?;
     }
 
-    if let Some(name) = query.github {
-        activity += Github::fetch(ReqwestDataSource {}, name).await?;
+    if let Some(name) = &query.github {
+        activity += Github::fetch(ReqwestDataSource {}, name.clone()).await?;
     }
 
-    if let Some(repositories) = query.bare_repository {
-        let infos = repositories
-            .into_iter()
-            .map(|u| serde_json::from_str(&u))
-            .collect::<serde_json::Result<Vec<RepositoryInfo>>>()?;
-
-        for info in infos {
-            activity += Repository::new(info.url)
-                .await?
-                .get_activity(info.user_name)
-                .await?;
-        }
+    for repository in query.bare_repositories()? {
+        activity += Repository::new(repository.url)
+            .await?
+            .get_activity(repository.user_name)
+            .await?;
     }
 
     Ok(activity)

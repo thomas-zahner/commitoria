@@ -1,15 +1,15 @@
 use super::Result;
 use crate::types::{ContributionActivity, Error, YEAR};
 use chrono::{DateTime, NaiveDate};
-use git2::{build::RepoBuilder, FetchOptions, Sort};
+use git2::{build::RepoBuilder, FetchOptions, RemoteCallbacks, Sort};
 use serde::Deserialize;
 use std::{
     collections::BTreeMap,
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Mutex,
-    time::Duration,
+    time::{Duration, Instant},
 };
-use tokio::{task, time::timeout};
+use tokio::task;
 use uuid::Uuid;
 
 const CLONE_TIMEOUT: Duration = Duration::from_millis(5_000);
@@ -23,44 +23,41 @@ pub struct RepositoryInfo {
 /// Represents a Git repository to be cloned and analysed
 pub struct Repository(Mutex<git2::Repository>);
 
-fn try_remove_path(path: &Path) {
-    if let Err(e) = std::fs::remove_dir_all(path) {
-        eprintln!("Failed to remove directory when repository was dropped: {e}");
-    }
-}
-
 impl Drop for Repository {
     fn drop(&mut self) {
         match self.0.lock() {
             Err(e) => eprintln!("{e}"),
-            Ok(repository) => try_remove_path(repository.path()),
+            Ok(repository) => {
+                let path = repository.path();
+                if let Err(e) = std::fs::remove_dir_all(path) {
+                    eprintln!("Failed to remove directory when repository was dropped: {e}");
+                }
+            }
         }
     }
+}
+
+fn register_timeout_callback(options: &mut FetchOptions<'_>) {
+    let mut callbacks = RemoteCallbacks::default();
+    let begin = Instant::now();
+    callbacks.transfer_progress(move |_| Instant::now() - begin < CLONE_TIMEOUT);
+    options.remote_callbacks(callbacks);
 }
 
 impl Repository {
     /// Clones the specified Git repository by URL
     pub async fn new(url: String) -> Result<Self> {
         let path = PathBuf::from(format!("/tmp/{}", Uuid::new_v4()));
-        let path_clone = path.clone();
-        let result = task::spawn_blocking(move || {
-            let mut builder = RepoBuilder::new();
-            let options = FetchOptions::new();
-            builder.fetch_options(options).bare(true);
+        let mut builder = RepoBuilder::new();
+        let mut options = FetchOptions::new();
 
-            // TODO: ideally we want to use the option `--shallow-since "1 year"`
-            // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
+        register_timeout_callback(&mut options);
+        builder.fetch_options(options).bare(true);
+        // TODO: ideally we want to use the option `--shallow-since "1 year"`
+        // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
 
-            builder.clone(&url, &path.clone())
-        });
-
-        match timeout(CLONE_TIMEOUT, result).await {
-            Ok(result) => Ok(Self(Mutex::new(result.unwrap()?))),
-            Err(_) => {
-                try_remove_path(&path_clone);
-                Err(Error::RepositoryCloningTimedOut)
-            }
-        }
+        let result = task::block_in_place(move || builder.clone(&url, &path.clone()));
+        Ok(Self(Mutex::new(result?)))
     }
 
     /// Get activity of the specified `user` in the last year.

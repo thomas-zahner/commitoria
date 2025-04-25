@@ -4,6 +4,7 @@ use std::future::Future;
 
 #[cfg(feature = "git")]
 pub mod git;
+pub mod gitea;
 pub mod github;
 pub mod gitlab;
 

@@ -53,6 +53,18 @@ impl CalendarQuery {
     }
 }
 
+fn get_svg_headers() -> HeaderMap {
+    let mut headers = HeaderMap::new();
+    headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
+    headers.insert(
+        "Cache-Control",
+        format!("max-age={}", MAX_SVG_CACHE_AGE_IN_SECONDS)
+            .parse()
+            .unwrap(),
+    );
+    headers
+}
+
 async fn get_calendar_data(query: CalendarQuery) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
@@ -89,19 +101,10 @@ impl From<CalendarQuery> for Builder {
 async fn get_calendar_svg(
     Query(query): Query<CalendarQuery>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let mut headers = HeaderMap::new();
-
-    headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
-    headers.insert(
-        "Cache-Control",
-        format!("max-age={}", MAX_SVG_CACHE_AGE_IN_SECONDS)
-            .parse()
-            .unwrap(),
-    );
     let activity = get_calendar_data(query.clone()).await?;
     let builder: Builder = query.into();
     let result: Result<SvgRenderer, Error> = builder.build().map_err(|e| e.into());
-    Ok((headers, result?.render(&activity)))
+    Ok((get_svg_headers(), result?.render(&activity)))
 }
 
 #[tokio::main]

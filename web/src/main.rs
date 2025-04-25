@@ -47,7 +47,7 @@ impl CalendarQuery {
             .unwrap_or(&Vec::new())
             .iter()
             .map(|u| serde_json::from_str(&u))
-            .collect::<serde_json::Result<Vec<RepositoryInfo>>>()
+            .collect()
     }
 }
 

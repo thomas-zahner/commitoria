@@ -10,3 +10,4 @@ commitoria-lib = { path = "../lib", features = ["git", "serde", "svg"] }
 serde = "1.0.217"
 axum-extra = { version = "0.10.1", features = ["query"] }
 serde_json = "1.0.140"
+const_format = "0.2.34"

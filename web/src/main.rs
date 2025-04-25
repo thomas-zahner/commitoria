@@ -16,6 +16,7 @@ use commitoria_lib::{
     svg::svg_renderer::{Builder, SvgRenderer},
     types::{ContributionActivity, Error},
 };
+use const_format::concatcp;
 use serde::Deserialize;
 
 const MAX_SVG_CACHE_AGE_IN_SECONDS: usize = 60 * 60;
@@ -58,9 +59,7 @@ fn get_svg_headers() -> HeaderMap {
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
     headers.insert(
         "Cache-Control",
-        format!("max-age={}", MAX_SVG_CACHE_AGE_IN_SECONDS)
-            .parse()
-            .unwrap(),
+        HeaderValue::from_static(concatcp!("max-age=", MAX_SVG_CACHE_AGE_IN_SECONDS)),
     );
     headers
 }

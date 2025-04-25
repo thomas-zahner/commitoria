@@ -18,6 +18,8 @@ use commitoria_lib::{
 };
 use serde::Deserialize;
 
+const MAX_SVG_CACHE_AGE_IN_SECONDS: usize = 60 * 60;
+
 macro_rules! static_file {
     ($file:expr, $content_type:expr $(,)?) => {{
         let mut headers = HeaderMap::new();
@@ -88,7 +90,14 @@ async fn get_calendar_svg(
     Query(query): Query<CalendarQuery>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     let mut headers = HeaderMap::new();
+
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
+    headers.insert(
+        "Cache-Control",
+        format!("max-age={}", MAX_SVG_CACHE_AGE_IN_SECONDS)
+            .parse()
+            .unwrap(),
+    );
     let activity = get_calendar_data(query.clone()).await?;
     let builder: Builder = query.into();
     let result: Result<SvgRenderer, Error> = builder.build().map_err(|e| e.into());

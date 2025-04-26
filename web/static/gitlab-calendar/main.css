@@ -73,3 +73,15 @@ input[type="submit"] {
 #active_colour {
     display: none;
 }
+
+footer {
+    position: fixed;
+    bottom: 0.5em;
+    right: 0.5em;
+}
+
+a {
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+}

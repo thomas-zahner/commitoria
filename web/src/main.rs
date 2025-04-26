@@ -1,3 +1,5 @@
+use std::{net::SocketAddr, sync::Arc};
+
 use axum::{
     http::{HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
@@ -18,8 +20,11 @@ use commitoria_lib::{
 };
 use const_format::concatcp;
 use serde::Deserialize;
+use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
 
 const MAX_SVG_CACHE_AGE_IN_SECONDS: usize = 60 * 60;
+const RATE_LIMITING_INTERVAL_IN_SECONDS: u64 = 20;
+const RATE_LIMITING_BURST_SIZE: u32 = 10;
 
 macro_rules! static_file {
     ($file:expr, $content_type:expr $(,)?) => {{
@@ -108,8 +113,19 @@ async fn get_calendar_svg(
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new()
+    let rate_limited_routes = Router::new()
         .route("/api/calendar.svg", get(get_calendar_svg))
+        .layer(GovernorLayer {
+            config: Arc::new(
+                GovernorConfigBuilder::default()
+                    .per_second(RATE_LIMITING_INTERVAL_IN_SECONDS)
+                    .burst_size(RATE_LIMITING_BURST_SIZE)
+                    .finish()
+                    .unwrap(),
+            ),
+        });
+
+    let static_routes = Router::new()
         .route_service("/", static_file!("gitlab-calendar/index.html", "text/html"))
         .route_service(
             "/calendar",
@@ -127,6 +143,16 @@ async fn main() {
             "/main.css",
             static_file!("gitlab-calendar/main.css", "text/css"),
         );
+
+    let app = Router::new()
+        .merge(rate_limited_routes)
+        .merge(static_routes);
+
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }

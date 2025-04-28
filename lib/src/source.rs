@@ -5,6 +5,7 @@ use crate::types::{Error, Result};
 pub enum Source {
     GithubUser(String),
     GitlabUser(String),
+    GiteaUser { user: String, hostname: String },
 }
 
 pub trait DataSource {
@@ -18,6 +19,9 @@ impl DataSource for ReqwestDataSource {
         let url = match source {
             Source::GithubUser(user) => format!("https://github.com/users/{user}/contributions"),
             Source::GitlabUser(user) => format!("https://gitlab.com/users/{user}/calendar.json"),
+            Source::GiteaUser { user, hostname } => {
+                format!("https://{}/{}?tab=activity", hostname, user)
+            }
         };
 
         Ok(reqwest::get(url)
@@ -41,6 +45,10 @@ impl DataSource for FixtureDataSource {
         let fixture_path = match source {
             Source::GithubUser(_) => "fixtures/github.html",
             Source::GitlabUser(_) => "fixtures/gitlab.json",
+            Source::GiteaUser {
+                user: _,
+                hostname: _,
+            } => "fixtures/gitea.html",
         };
 
         Ok(std::fs::read_to_string(fixture_path).expect("Unable to read file"))

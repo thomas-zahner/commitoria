@@ -1,6 +1,8 @@
-use crate::svg::svg_renderer::BuilderError;
 use reqwest::StatusCode;
 use scraper::error::SelectorErrorKind;
+
+#[cfg(feature = "svg")]
+use crate::svg::svg_renderer::BuilderError;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
@@ -13,10 +15,13 @@ pub enum Error {
     ReqwestError(String),
     GitError(String),
     UserNotFound,
-    BuilderError(BuilderError),
     RepositoryCloningTimedOut,
+
+    #[cfg(feature = "svg")]
+    BuilderError(BuilderError),
 }
 
+#[cfg(feature = "svg")]
 impl From<BuilderError> for Error {
     fn from(error: BuilderError) -> Self {
         Self::BuilderError(error)

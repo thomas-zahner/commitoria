@@ -4,13 +4,11 @@ use std::{
     ops::{Add, AddAssign},
 };
 
-#[cfg(feature = "serde")]
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ContributionActivity(BTreeMap<NaiveDate, usize>);
 
-#[cfg(feature = "serde")]
 impl Serialize for ContributionActivity {
     fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
     where

@@ -1,60 +1,96 @@
 use crate::{
-    provider::parse_date,
     source::{DataSource, Source},
-    types::ContributionActivity,
+    types::{ContributionActivity, Error},
 };
-use chrono::NaiveDate;
-use std::collections::{BTreeMap, HashMap};
+use chrono::{DateTime, NaiveDate};
+use scraper::{Html, Selector};
+use serde::Deserialize;
+use std::collections::BTreeMap;
 
 use super::{GitProvider, Result};
 
 pub struct Gitea {}
+
+#[derive(Deserialize, Debug)]
+struct HeatmapDataPoint {
+    timestamp: i64,
+    contributions: usize,
+}
+
+impl TryFrom<Vec<HeatmapDataPoint>> for ContributionActivity {
+    type Error = Error;
+
+    fn try_from(value: Vec<HeatmapDataPoint>) -> std::result::Result<Self, Self::Error> {
+        let data_points = value
+            .into_iter()
+            .map(|data_point| {
+                let timestamp = DateTime::from_timestamp(data_point.timestamp, 0).ok_or(
+                    Error::UnableToParseDate("Invalid timestamp encountered".into()),
+                );
+                Ok((timestamp?.date_naive(), data_point.contributions))
+            })
+            .collect::<Result<Vec<(NaiveDate, usize)>>>()?;
+
+        let mut map = BTreeMap::new();
+        for (timestamp, count) in data_points {
+            map.entry(timestamp)
+                .and_modify(|v| *v += count)
+                .or_insert(count);
+        }
+
+        Ok(map.into())
+    }
+}
 
 impl GitProvider for Gitea {
     async fn fetch<S: DataSource>(
         data_source: S,
         user_name: String,
     ) -> Result<ContributionActivity> {
-        todo!()
+        let hostname = "codeberg.org".to_string();
+        let html = data_source
+            .fetch(Source::GiteaUser {
+                user: user_name,
+                hostname,
+            })
+            .await?;
 
-        // URL: https://codeberg.org/unfa?tab=activity
-        //
-        // Select div#user-heatmap
-        // Has attribute `data-heatmap-data`
-        //
-        // Attribute value:
-        //
-        // [{&#34;timestamp&#34;:1720530900,&#34;contributions&#34;:2},{&#34;timestamp&#34;:1720531800,&#34;contributions&#34;:4},{&#34;timestamp&#34;:1722285000,&#34;contributions&#34;:1},{&#34;timestamp&#34;:1729594800,&#34;contributions&#34;:1},{&#34;timestamp&#34;:1729607400,&#34;contributions&#34;:1},{&#34;timestamp&#34;:1732624200,&#34;contributions&#34;:2},{&#34;timestamp&#34;:1733067900,&#34;contributions&#34;:1},{&#34;timestamp&#34;:1741988700,&#34;contributions&#34;:3},{&#34;timestamp&#34;:1741989600,&#34;contributions&#34;:1},{&#34;timestamp&#34;:1741990500,&#34;contributions&#34;:2},{&#34;timestamp&#34;:1741991400,&#34;contributions&#34;:2},{&#34;timestamp&#34;:1744729200,&#34;contributions&#34;:1},{&#34;timestamp&#34;:1745508600,&#34;contributions&#34;:2}]
+        let document = Html::parse_document(&html);
+        let selector = Selector::parse("div#user-heatmap")?;
+
+        let selected = document
+            .select(&selector)
+            .next()
+            .ok_or(Error::UserNotFound)?;
+        let json = selected
+            .attr("data-heatmap-data")
+            .ok_or(Error::AttributeMissing)?;
+
+        let parsed: Vec<HeatmapDataPoint> = serde_json::from_str(&json)?;
+        parsed.try_into()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        source::{FixtureDataSource, ReqwestDataSource},
-        types::Error,
-    };
+    use crate::source::{FixtureDataSource, ReqwestDataSource};
 
     #[tokio::test]
     async fn contributions_fixture() {
         let result = Gitea::fetch(FixtureDataSource {}, "".into()).await.unwrap();
 
         assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 01, 22).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 07, 09).unwrap()),
+            Some(6)
+        );
+
+        assert_eq!(
+            result.get(&NaiveDate::from_ymd_opt(2024, 07, 29).unwrap()),
             Some(1)
         );
 
-        assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 02, 04).unwrap()),
-            Some(2)
-        );
-
-        assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 01, 01).unwrap()),
-            None
-        );
-        assert_eq!(result.contribution_count(), 21);
+        assert_eq!(result.contribution_count(), 23);
     }
 
     #[tokio::test]

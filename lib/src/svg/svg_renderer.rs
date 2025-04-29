@@ -259,15 +259,11 @@ mod tests {
     use chrono::NaiveDate;
 
     use super::{Builder, SvgRenderer};
-    use crate::{
-        provider::{github::Github, GitProvider},
-        source::FixtureDataSource,
-        svg::svg_renderer::Data,
-    };
+    use crate::{provider::github::Github, source::FixtureDataSource, svg::svg_renderer::Data};
 
     #[tokio::test]
     async fn render_full() {
-        let activity = Github::fetch(FixtureDataSource {}, "".into())
+        let activity = Github::fetch(FixtureDataSource::GithubUser, "".into())
             .await
             .unwrap();
 

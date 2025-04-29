@@ -1,5 +1,5 @@
 use crate::{
-    source::{DataSource, Source},
+    source::DataSource,
     types::{ContributionActivity, Error},
 };
 use chrono::{DateTime, NaiveDate};
@@ -7,7 +7,7 @@ use scraper::{Html, Selector};
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
-use super::{GitProvider, Result};
+use super::Result;
 
 pub struct Gitea {}
 
@@ -42,17 +42,14 @@ impl TryFrom<Vec<HeatmapDataPoint>> for ContributionActivity {
     }
 }
 
-impl GitProvider for Gitea {
-    async fn fetch<S: DataSource>(
+impl Gitea {
+    pub async fn fetch<S: DataSource>(
         data_source: S,
         user_name: String,
     ) -> Result<ContributionActivity> {
         let hostname = "codeberg.org".to_string();
         let html = data_source
-            .fetch(Source::GiteaUser {
-                user: user_name,
-                hostname,
-            })
+            .fetch(format!("https://{hostname}/{user_name}?tab=activity"))
             .await?;
 
         let document = Html::parse_document(&html);
@@ -78,7 +75,9 @@ mod tests {
 
     #[tokio::test]
     async fn contributions_fixture() {
-        let result = Gitea::fetch(FixtureDataSource {}, "".into()).await.unwrap();
+        let result = Gitea::fetch(FixtureDataSource::GiteaUser, "".into())
+            .await
+            .unwrap();
 
         assert_eq!(
             result.get(&NaiveDate::from_ymd_opt(2024, 07, 09).unwrap()),
@@ -97,6 +96,13 @@ mod tests {
     async fn contributions_real() {
         let result = Gitea::fetch(ReqwestDataSource {}, "unfa".into()).await;
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn contributions_real_forgejo() {
+        // url: git.omaps.dev
+        // user: kirylkaveryn
+        todo!()
     }
 
     #[tokio::test]

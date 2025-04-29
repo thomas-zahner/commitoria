@@ -1,9 +1,5 @@
-use super::{parse_date, Error, GitProvider};
-use crate::{
-    source::{DataSource, Source},
-    types::ContributionActivity,
-    types::Result,
-};
+use super::{parse_date, Error};
+use crate::{source::DataSource, types::ContributionActivity, types::Result};
 use regex::Regex;
 use scraper::{Html, Selector};
 use std::{collections::BTreeMap, sync::LazyLock};
@@ -13,12 +9,16 @@ pub struct Github {}
 static GITHUB_CONTRIBUTION_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new("^(\\d+) contributions?").unwrap());
 
-impl GitProvider for Github {
-    async fn fetch<S: DataSource>(
+impl Github {
+    pub async fn fetch<S: DataSource>(
         data_source: S,
         user_name: String,
     ) -> Result<ContributionActivity> {
-        let html = data_source.fetch(Source::GithubUser(user_name)).await?;
+        let html = data_source
+            .fetch(format!(
+                "https://github.com/users/{user_name}/contributions"
+            ))
+            .await?;
         let document = Html::parse_document(&html);
         let selector = Selector::parse("div > table > tbody td[data-date]")?;
 
@@ -64,7 +64,7 @@ mod tests {
 
     #[tokio::test]
     async fn contributions_fixture() {
-        let result = Github::fetch(FixtureDataSource {}, "".into())
+        let result = Github::fetch(FixtureDataSource::GithubUser, "".into())
             .await
             .unwrap();
 

@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 axum = "0.8.1"
 tokio = { version = "1.42.0", features = ["rt-multi-thread"] }
-commitoria-lib = { path = "../lib", features = ["git", "serde", "svg"] }
+commitoria-lib = { path = "../lib", features = ["git", "svg"] }
 serde = "1.0.217"
 axum-extra = { version = "0.10.1", features = ["query"] }
 serde_json = "1.0.140"

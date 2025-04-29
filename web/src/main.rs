@@ -12,7 +12,6 @@ use commitoria_lib::{
         git::{Repository, RepositoryInfo},
         github::Github,
         gitlab::Gitlab,
-        GitProvider,
     },
     source::ReqwestDataSource,
     svg::svg_renderer::{Builder, SvgRenderer},

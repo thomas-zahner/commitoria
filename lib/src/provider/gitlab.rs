@@ -1,21 +1,21 @@
-use crate::{
-    provider::parse_date,
-    source::{DataSource, Source},
-    types::ContributionActivity,
-};
+use crate::{provider::parse_date, source::DataSource, types::ContributionActivity};
 use chrono::NaiveDate;
 use std::collections::{BTreeMap, HashMap};
 
-use super::{GitProvider, Result};
+use super::Result;
 
 pub struct Gitlab {}
 
-impl GitProvider for Gitlab {
-    async fn fetch<S: DataSource>(
+impl Gitlab {
+    pub async fn fetch<S: DataSource>(
         data_source: S,
         user_name: String,
     ) -> Result<ContributionActivity> {
-        let json = data_source.fetch(Source::GitlabUser(user_name)).await?;
+        let json = data_source
+            .fetch(format!(
+                "https://gitlab.com/users/{user_name}/calendar.json"
+            ))
+            .await?;
         let parsed: HashMap<String, usize> = serde_json::from_str(&json)?;
 
         Ok(parsed
@@ -38,7 +38,7 @@ mod tests {
 
     #[tokio::test]
     async fn contributions_fixture() {
-        let result = Gitlab::fetch(FixtureDataSource {}, "".into())
+        let result = Gitlab::fetch(FixtureDataSource::GitlabUser, "".into())
             .await
             .unwrap();
 

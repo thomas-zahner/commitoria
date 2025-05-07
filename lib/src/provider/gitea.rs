@@ -3,6 +3,7 @@ use crate::{
     types::{ContributionActivity, Error},
 };
 use chrono::{DateTime, NaiveDate};
+use reqwest::Url;
 use scraper::{Html, Selector};
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -46,11 +47,11 @@ impl Gitea {
     pub async fn fetch<S: DataSource>(
         data_source: S,
         user_name: String,
+        mut url: Url,
     ) -> Result<ContributionActivity> {
-        let hostname = "codeberg.org".to_string();
-        let html = data_source
-            .fetch(format!("https://{hostname}/{user_name}?tab=activity"))
-            .await?;
+        url.set_path(&user_name);
+        url.set_query(Some("tab=activity"));
+        let html = data_source.fetch(url).await?;
 
         let document = Html::parse_document(&html);
         let selector = Selector::parse("div#user-heatmap")?;
@@ -75,9 +76,13 @@ mod tests {
 
     #[tokio::test]
     async fn contributions_fixture() {
-        let result = Gitea::fetch(FixtureDataSource::GiteaUser, "".into())
-            .await
-            .unwrap();
+        let result = Gitea::fetch(
+            FixtureDataSource::GiteaUser,
+            "".into(),
+            "https://codeberg.org".try_into().unwrap(),
+        )
+        .await
+        .unwrap();
 
         assert_eq!(
             result.get(&NaiveDate::from_ymd_opt(2024, 07, 09).unwrap()),
@@ -93,21 +98,35 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn contributions_real() {
-        let result = Gitea::fetch(ReqwestDataSource {}, "unfa".into()).await;
+    async fn contributions_real_codeberg() {
+        let result = Gitea::fetch(
+            ReqwestDataSource {},
+            "unfa".into(),
+            "https://codeberg.org".try_into().unwrap(),
+        )
+        .await;
         assert!(result.is_ok());
     }
 
     #[tokio::test]
     async fn contributions_real_forgejo() {
-        // url: git.omaps.dev
-        // user: kirylkaveryn
-        todo!()
+        let result = Gitea::fetch(
+            ReqwestDataSource {},
+            "kirylkaveryn".into(),
+            "https://git.omaps.dev".try_into().unwrap(),
+        )
+        .await;
+        assert!(result.is_ok());
     }
 
     #[tokio::test]
     async fn user_not_found() {
-        let result = Gitea::fetch(ReqwestDataSource {}, "".into()).await;
+        let result = Gitea::fetch(
+            ReqwestDataSource {},
+            "".into(),
+            "https://codeberg.org".try_into().unwrap(),
+        )
+        .await;
         assert_eq!(result, Result::Err(Error::UserNotFound));
     }
 }

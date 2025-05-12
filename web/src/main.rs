@@ -1,5 +1,4 @@
-use std::{net::SocketAddr, sync::Arc};
-
+use crate::query::CalendarQuery;
 use axum::{
     http::{HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
@@ -8,18 +7,17 @@ use axum::{
 };
 use axum_extra::extract::Query;
 use commitoria_lib::{
-    provider::{
-        git::{Repository, RepositoryInfo},
-        github::Github,
-        gitlab::Gitlab,
-    },
+    provider::{git::Repository, gitea::Gitea, github::Github, gitlab::Gitlab},
     source::ReqwestDataSource,
-    svg::svg_renderer::{Builder, SvgRenderer},
+    svg::svg_renderer::SvgRenderer,
     types::{ContributionActivity, Error},
 };
 use const_format::concatcp;
-use serde::Deserialize;
+use query::{ParsedQuery, Repositories};
+use std::{net::SocketAddr, sync::Arc};
 use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
+
+mod query;
 
 const MAX_SVG_CACHE_AGE_IN_SECONDS: usize = 60 * 60;
 const RATE_LIMITING_INTERVAL_IN_SECONDS: u64 = 20;
@@ -35,29 +33,6 @@ macro_rules! static_file {
     }};
 }
 
-#[derive(Deserialize, Clone)]
-struct CalendarQuery {
-    github: Option<String>,
-    gitlab: Option<String>,
-    font_size: Option<usize>,
-    cell_size: Option<usize>,
-    colour_strategy: Option<String>,
-    active_colour: Option<String>,
-    inactive_colour: Option<String>,
-    bare_repository: Option<Vec<String>>,
-}
-
-impl CalendarQuery {
-    fn bare_repositories(&self) -> serde_json::Result<Vec<RepositoryInfo>> {
-        self.bare_repository
-            .as_ref()
-            .unwrap_or(&Vec::new())
-            .iter()
-            .map(|u| serde_json::from_str(&u))
-            .collect()
-    }
-}
-
 fn get_svg_headers() -> HeaderMap {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("image/svg+xml"));
@@ -68,44 +43,37 @@ fn get_svg_headers() -> HeaderMap {
     headers
 }
 
-async fn get_calendar_data(query: CalendarQuery) -> Result<ContributionActivity, Error> {
+async fn get_calendar_data(repositories: Repositories) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
-    if let Some(name) = &query.gitlab {
+    if let Some(name) = &repositories.gitlab {
         activity += Gitlab::fetch(ReqwestDataSource {}, name.clone()).await?;
     }
 
-    if let Some(name) = &query.github {
+    if let Some(name) = &repositories.github {
         activity += Github::fetch(ReqwestDataSource {}, name.clone()).await?;
     }
 
-    for repository in query.bare_repositories()? {
+    for repository in repositories.bare {
         activity += Repository::new(repository.url)
             .await?
             .get_activity(repository.user_name)
             .await?;
     }
 
-    Ok(activity)
-}
-
-impl From<CalendarQuery> for Builder {
-    fn from(query: CalendarQuery) -> Self {
-        Builder {
-            cell_size: query.cell_size,
-            colour_strategy: query.colour_strategy,
-            font_size: query.font_size,
-            active_colour: query.active_colour,
-            inactive_colour: query.inactive_colour,
-        }
+    for repository in repositories.gitea {
+        activity +=
+            Gitea::fetch(ReqwestDataSource {}, repository.user_name, repository.url).await?;
     }
+
+    Ok(activity)
 }
 
 async fn get_calendar_svg(
     Query(query): Query<CalendarQuery>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let activity = get_calendar_data(query.clone()).await?;
-    let builder: Builder = query.into();
+    let ParsedQuery(repositories, builder) = query.try_into()?;
+    let activity = get_calendar_data(repositories).await?;
     let result: Result<SvgRenderer, Error> = builder.build().map_err(|e| e.into());
     Ok((get_svg_headers(), result?.render(&activity)))
 }

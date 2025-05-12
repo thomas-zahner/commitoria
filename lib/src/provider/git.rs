@@ -2,7 +2,6 @@ use super::Result;
 use crate::types::{ContributionActivity, Error, YEAR};
 use chrono::{DateTime, NaiveDate};
 use git2::{build::RepoBuilder, FetchOptions, RemoteCallbacks, Sort};
-use serde::Deserialize;
 use std::{
     collections::BTreeMap,
     path::PathBuf,
@@ -10,15 +9,10 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::task;
+use url::Url;
 use uuid::Uuid;
 
 const CLONE_TIMEOUT: Duration = Duration::from_millis(5_000);
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct RepositoryInfo {
-    pub url: String,
-    pub user_name: String,
-}
 
 /// Represents a Git repository to be cloned and analysed
 pub struct Repository(Mutex<git2::Repository>);
@@ -49,7 +43,7 @@ fn register_timeout_callback(options: &mut FetchOptions<'_>, begin: Instant) {
 
 impl Repository {
     /// Clones the specified Git repository by URL
-    pub async fn new(url: String) -> Result<Self> {
+    pub async fn new(url: Url) -> Result<Self> {
         let path = PathBuf::from(format!("/tmp/{}", Uuid::new_v4()));
         let mut builder = RepoBuilder::new();
         let mut options = FetchOptions::new();
@@ -61,7 +55,7 @@ impl Repository {
         // TODO: ideally we want to use the option `--shallow-since "1 year"`
         // But not yet supported: https://github.com/libgit2/libgit2/issues/6611
 
-        let result = task::block_in_place(move || builder.clone(&url, &path.clone()));
+        let result = task::block_in_place(move || builder.clone(url.as_str(), &path.clone()));
         let result = result.map_err(|e| match e {
             git2::Error { .. } if is_timed_out(begin) => Error::RepositoryCloningTimedOut,
             e => e.into(),
@@ -117,8 +111,12 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     async fn git_repository() {
-        let repository =
-            Repository::new("https://github.com/thomas-zahner/commitoria".into()).await;
+        let repository = Repository::new(
+            "https://github.com/thomas-zahner/commitoria"
+                .try_into()
+                .unwrap(),
+        )
+        .await;
         let since = NaiveDate::from_ymd_opt(2024, 01, 01).unwrap();
 
         let result = repository

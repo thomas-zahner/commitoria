@@ -1,5 +1,7 @@
 use crate::{types::Error, types::Result};
 use chrono::NaiveDate;
+use serde::Deserialize;
+use url::Url;
 
 #[cfg(feature = "git")]
 pub mod git;
@@ -12,4 +14,10 @@ fn parse_date(date: &str) -> Result<NaiveDate> {
 
     NaiveDate::parse_from_str(date, DATE_DESCRIPTION)
         .map_err(|e| Error::UnableToParseDate(e.to_string()))
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct RepositoryInfo {
+    pub url: Url,
+    pub user_name: String,
 }

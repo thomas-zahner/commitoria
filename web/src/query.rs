@@ -10,15 +10,13 @@ pub(crate) struct CalendarQuery {
     colour_strategy: Option<String>,
     active_colour: Option<String>,
     inactive_colour: Option<String>,
-    bare: Option<Vec<String>>,
-    gitea: Option<Vec<String>>,
+    repositories: Option<Vec<String>>,
 }
 
 pub(crate) struct Repositories {
     pub(crate) gitlab: Option<String>,
     pub(crate) github: Option<String>,
-    pub(crate) gitea: Vec<RepositoryInfo>,
-    pub(crate) bare: Vec<RepositoryInfo>,
+    pub(crate) repositories: Vec<RepositoryInfo>,
 }
 
 pub(crate) struct ParsedQuery(pub(crate) Repositories, pub(crate) svg_renderer::Builder);
@@ -27,16 +25,8 @@ impl TryFrom<CalendarQuery> for ParsedQuery {
     type Error = crate::Error;
 
     fn try_from(value: CalendarQuery) -> Result<Self, Self::Error> {
-        let bare = value
-            .bare
-            .as_ref()
-            .unwrap_or(&Vec::new())
-            .iter()
-            .map(|u| serde_json::from_str(&u))
-            .collect::<serde_json::Result<Vec<RepositoryInfo>>>()?;
-
-        let gitea = value
-            .gitea
+        let repositories = value
+            .repositories
             .as_ref()
             .unwrap_or(&Vec::new())
             .iter()
@@ -51,8 +41,7 @@ impl TryFrom<CalendarQuery> for ParsedQuery {
             Repositories {
                 github,
                 gitlab,
-                gitea,
-                bare,
+                repositories,
             },
             builder,
         ))

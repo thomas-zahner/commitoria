@@ -20,4 +20,11 @@ fn parse_date(date: &str) -> Result<NaiveDate> {
 pub struct RepositoryInfo {
     pub url: Url,
     pub user_name: String,
+    pub kind: RepositoryKind,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub enum RepositoryKind {
+    Gitea,
+    BareGitRepository,
 }

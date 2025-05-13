@@ -8,6 +8,8 @@ A tool for aggregating and visualising contribution activity from multiple sourc
 
 ✔️ GitLab (gitlab.com)
 
+✔️ Gitea (Forgejo, Codeberg, ...)
+
 ✔️ Git repositories by URL
 
 Warning: this project is in an early stage. The code is sparsely documented and subject to change.
@@ -27,9 +29,7 @@ A picture that is closer to reality.
 
 ## State
 
-Currently, we support GitHub, GitLab (gitlab.com) and Git repositories by URL as data sources.
-The goal is to support more hosting solutions and custom domains.
-
+Currently, we support GitHub, GitLab (gitlab.com), Gitea and bare Git repositories as data sources.
 As of now, everything that is aggregated is the contribution count per day.
 This data is visualised as an activity calendar (also called contribution graph).
 

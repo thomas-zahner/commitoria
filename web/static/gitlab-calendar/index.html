@@ -14,8 +14,8 @@
             <input type="text" name="github" placeholder="GitHub username" />
             <br />
 
-            <h3>Single repositories</h3>
-            <p>Add single Git repositories by URL.</p>
+            <h3>Repositories</h3>
+            <p>Add repositories by username and URL or type.</p>
 
             <button
                 title="Add repository"
@@ -85,5 +85,12 @@
                     >Commitoria</a
                 ></small
         </footer>
+
+        <template id="repository-type">
+            <select data-form-name="kind">
+              <option value="BareGitRepository">Bare Git repository</option>
+              <option value="Gitea">Gitea (codeberg.org, Forgejo)</option>
+            </select>
+        </template>
     </body>
 </html>

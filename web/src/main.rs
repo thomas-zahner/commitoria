@@ -7,7 +7,7 @@ use axum::{
 };
 use axum_extra::extract::Query;
 use commitoria_lib::{
-    provider::{git::Repository, gitea::Gitea, github::Github, gitlab::Gitlab},
+    provider::{git::Repository, gitea::Gitea, github::Github, gitlab::Gitlab, RepositoryKind},
     source::ReqwestDataSource,
     svg::svg_renderer::SvgRenderer,
     types::{ContributionActivity, Error},
@@ -54,16 +54,18 @@ async fn get_calendar_data(repositories: Repositories) -> Result<ContributionAct
         activity += Github::fetch(ReqwestDataSource {}, name.clone()).await?;
     }
 
-    for repository in repositories.bare {
-        activity += Repository::new(repository.url)
-            .await?
-            .get_activity(repository.user_name)
-            .await?;
-    }
-
-    for repository in repositories.gitea {
-        activity +=
-            Gitea::fetch(ReqwestDataSource {}, repository.user_name, repository.url).await?;
+    for repository in repositories.repositories {
+        activity += match repository.kind {
+            RepositoryKind::Gitea => {
+                Gitea::fetch(ReqwestDataSource {}, repository.user_name, repository.url).await?
+            }
+            RepositoryKind::BareGitRepository => {
+                Repository::new(repository.url)
+                    .await?
+                    .get_activity(repository.user_name)
+                    .await?
+            }
+        };
     }
 
     Ok(activity)

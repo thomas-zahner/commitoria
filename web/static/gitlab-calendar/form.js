@@ -27,15 +27,19 @@ function addRepositoryLine() {
   const repository = document.createElement("div");
 
   const username = document.createElement("input");
-  username.setAttribute("class", "username");
+  username.setAttribute("data-form-name", "user_name");
   username.setAttribute("required", "");
-  username.setAttribute("placeholder", "Author's name or email");
+  username.setAttribute("placeholder", "Username or email");
 
   const url = document.createElement("input");
-  url.setAttribute("class", "url");
+  url.setAttribute("data-form-name", "url");
   url.setAttribute("type", "url");
   url.setAttribute("required", "");
-  url.setAttribute("placeholder", "URL to Git repository");
+  url.setAttribute("placeholder", "URL to hoster or Git repository");
+
+  const type = document
+    .querySelector("#repository-type")
+    .content.cloneNode(true);
 
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "X";
@@ -45,6 +49,7 @@ function addRepositoryLine() {
 
   repository.appendChild(username);
   repository.appendChild(url);
+  repository.appendChild(type);
   repository.appendChild(deleteButton);
 
   repositories.appendChild(repository);
@@ -64,9 +69,17 @@ function onSubmit(event) {
   }
 
   for (const repository of repositories.children) {
-    const user_name = repository.querySelector(".username").value;
-    const url = repository.querySelector(".url").value;
-    params.append("bare_repository", JSON.stringify({ user_name, url }));
+    const data = {};
+    for (const child of repository.children) {
+      const value = child.value;
+      const name = child.dataset.formName;
+
+      if (value && name) {
+        data[name] = value;
+      }
+    }
+
+    params.append("repositories", JSON.stringify(data));
   }
 
   window.location = "/calendar?" + params.toString();

@@ -9,6 +9,7 @@ pub mod gitea;
 pub mod github;
 pub mod gitlab;
 
+/// Try to parse a `&str` to a `NaiveDate`
 fn parse_date(date: &str) -> Result<NaiveDate> {
     const DATE_DESCRIPTION: &'static str = "%Y-%m-%d";
 
@@ -16,6 +17,7 @@ fn parse_date(date: &str) -> Result<NaiveDate> {
         .map_err(|e| Error::UnableToParseDate(e.to_string()))
 }
 
+/// Information to know how and where to extract data from.
 #[derive(Clone, Debug, Deserialize)]
 pub struct RepositoryInfo {
     pub url: Url,
@@ -25,6 +27,8 @@ pub struct RepositoryInfo {
 
 #[derive(Clone, Debug, Deserialize)]
 pub enum RepositoryKind {
+    /// Gitea based solutions like Codeberg and Forgejo
     Gitea,
+    /// Normal, bare git repository
     BareGitRepository,
 }

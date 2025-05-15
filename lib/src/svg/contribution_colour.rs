@@ -2,15 +2,18 @@ use serde::Deserialize;
 
 use super::rgba::Rgba;
 
+/// Information statistics used for calculating the cell colour of a day.
 pub(crate) struct ContributionInfo {
     pub(crate) average_count_per_day: f32,
     pub(crate) count_today: usize,
 }
 
+/// The different strategies to calculate the colour of a cell
 #[derive(Clone, Deserialize)]
 pub enum ColourStrategy {
     /// The way GitLab visualises contribution activity
     GitlabStrategy,
+    /// Smoothly interpolate from `inactive_colour` to `active_colour`
     InterpolationStrategy {
         inactive_colour: Rgba,
         active_colour: Rgba,

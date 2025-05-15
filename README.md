@@ -29,7 +29,7 @@ A picture that is closer to reality.
 
 ## State
 
-Currently, we support GitHub, GitLab (gitlab.com), Gitea and bare Git repositories as data sources.
+The supported platforms can be found at the very top of the README.
 As of now, everything that is aggregated is the contribution count per day.
 This data is visualised as an activity calendar (also called contribution graph).
 

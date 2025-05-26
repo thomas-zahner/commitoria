@@ -46,24 +46,23 @@ fn get_svg_headers() -> HeaderMap {
 async fn get_calendar_data(repositories: Repositories) -> Result<ContributionActivity, Error> {
     let mut activity = ContributionActivity::new();
 
-    if let Some(name) = &repositories.gitlab {
-        activity += Gitlab::fetch(ReqwestDataSource {}, name.clone()).await?;
-    }
-
     if let Some(name) = &repositories.github {
         activity += Github::fetch(ReqwestDataSource {}, name.clone()).await?;
     }
 
     for repository in repositories.repositories {
         activity += match repository.kind {
-            RepositoryKind::Gitea => {
-                Gitea::fetch(ReqwestDataSource {}, repository.user_name, repository.url).await?
-            }
             RepositoryKind::BareGitRepository => {
                 Repository::new(repository.url)
                     .await?
                     .get_activity(repository.user_name)
                     .await?
+            }
+            RepositoryKind::Gitea => {
+                Gitea::fetch(ReqwestDataSource {}, repository.user_name, repository.url).await?
+            }
+            RepositoryKind::Gitlab => {
+                Gitlab::fetch(ReqwestDataSource {}, repository.user_name, repository.url).await?
             }
         };
     }

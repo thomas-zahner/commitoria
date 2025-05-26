@@ -4,7 +4,6 @@ use serde::Deserialize;
 #[derive(Deserialize, Clone)]
 pub(crate) struct CalendarQuery {
     pub(crate) github: Option<String>,
-    pub(crate) gitlab: Option<String>,
     font_size: Option<usize>,
     cell_size: Option<usize>,
     colour_strategy: Option<String>,
@@ -14,7 +13,6 @@ pub(crate) struct CalendarQuery {
 }
 
 pub(crate) struct Repositories {
-    pub(crate) gitlab: Option<String>,
     pub(crate) github: Option<String>,
     pub(crate) repositories: Vec<RepositoryInfo>,
 }
@@ -34,13 +32,11 @@ impl TryFrom<CalendarQuery> for ParsedQuery {
             .collect::<serde_json::Result<Vec<RepositoryInfo>>>()?;
 
         let github = value.github.clone();
-        let gitlab = value.gitlab.clone();
         let builder = value.into();
 
         Ok(Self(
             Repositories {
                 github,
-                gitlab,
                 repositories,
             },
             builder,

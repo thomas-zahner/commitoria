@@ -27,8 +27,10 @@ pub struct RepositoryInfo {
 
 #[derive(Clone, Debug, Deserialize)]
 pub enum RepositoryKind {
-    /// Gitea based solutions like Codeberg and Forgejo
-    Gitea,
     /// Normal, bare git repository
     BareGitRepository,
+    /// Gitea based solutions like Codeberg and Forgejo
+    Gitea,
+    /// GitLab based solutions (most prominently https://gitlab.com)
+    Gitlab,
 }

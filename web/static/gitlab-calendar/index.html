@@ -9,8 +9,6 @@
         <h1>Commitoria</h1>
         <form action="/calendar" onsubmit="onSubmit(event)">
             <h2>Sources</h2>
-            <input type="text" name="gitlab" placeholder="GitLab username" />
-            <br />
             <input type="text" name="github" placeholder="GitHub username" />
             <br />
 
@@ -90,6 +88,7 @@
             <select data-form-name="kind">
               <option value="BareGitRepository">Bare Git repository</option>
               <option value="Gitea">Gitea (codeberg.org, Forgejo)</option>
+              <option value="Gitlab">GitLab (most prominently https://gitlab.com)</option>
             </select>
         </template>
     </body>

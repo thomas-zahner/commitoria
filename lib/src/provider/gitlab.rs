@@ -1,6 +1,7 @@
 use crate::{provider::parse_date, source::DataSource, types::ContributionActivity};
 use chrono::NaiveDate;
 use std::collections::{BTreeMap, HashMap};
+use url::Url;
 
 use super::Result;
 
@@ -10,12 +11,10 @@ impl Gitlab {
     pub async fn fetch<S: DataSource>(
         data_source: S,
         user_name: String,
+        mut url: Url,
     ) -> Result<ContributionActivity> {
-        let json = data_source
-            .fetch(format!(
-                "https://gitlab.com/users/{user_name}/calendar.json"
-            ))
-            .await?;
+        url.set_path(&format!("users/{user_name}/calendar.json"));
+        let json = data_source.fetch(url).await?;
         let parsed: HashMap<String, usize> = serde_json::from_str(&json)?;
 
         Ok(parsed
@@ -38,9 +37,13 @@ mod tests {
 
     #[tokio::test]
     async fn contributions_fixture() {
-        let result = Gitlab::fetch(FixtureDataSource::GitlabUser, "".into())
-            .await
-            .unwrap();
+        let result = Gitlab::fetch(
+            FixtureDataSource::GitlabUser,
+            "".into(),
+            "https://gitlab.com".try_into().unwrap(),
+        )
+        .await
+        .unwrap();
 
         assert_eq!(
             result.get(&NaiveDate::from_ymd_opt(2024, 01, 22).unwrap()),
@@ -61,13 +64,23 @@ mod tests {
 
     #[tokio::test]
     async fn contributions_real() {
-        let result = Gitlab::fetch(ReqwestDataSource {}, "thomas-zahner".into()).await;
+        let result = Gitlab::fetch(
+            ReqwestDataSource {},
+            "thomas-zahner".into(),
+            "https://gitlab.com".try_into().unwrap(),
+        )
+        .await;
         assert!(result.is_ok());
     }
 
     #[tokio::test]
     async fn user_not_found() {
-        let result = Gitlab::fetch(ReqwestDataSource {}, "".into()).await;
+        let result = Gitlab::fetch(
+            ReqwestDataSource {},
+            "".into(),
+            "https://gitlab.com".try_into().unwrap(),
+        )
+        .await;
         assert_eq!(result, Result::Err(Error::UserNotFound));
     }
 }

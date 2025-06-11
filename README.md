@@ -6,13 +6,11 @@ A tool for aggregating and visualising contribution activity from multiple sourc
 
 ✔️ GitHub
 
-✔️ GitLab (gitlab.com)
+✔️ GitLab
 
 ✔️ Gitea (Forgejo, Codeberg, ...)
 
-✔️ Git repositories by URL
-
-Warning: this project is in an early stage. The code is sparsely documented and subject to change.
+✔️ Bare Git repositories
 
 ## Why?
 

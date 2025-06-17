@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use reqwest::IntoUrl;
+use reqwest::{IntoUrl, StatusCode};
 
 use crate::types::{Error, Result};
 
@@ -15,9 +15,9 @@ impl DataSource for ReqwestDataSource {
         Ok(reqwest::get(source)
             .await?
             .error_for_status()
-            .map_err(|e| match e {
-                e if e.is_status() => Error::UserNotFound,
-                e => e.into(),
+            .map_err(|e| match e.status() {
+                Some(StatusCode::NOT_FOUND) => Error::UserNotFound,
+                _ => e.into(),
             })?
             .text()
             .await?)

@@ -98,7 +98,8 @@ impl MonthText {
     }
 
     fn render(&self, renderer: &SvgRenderer) -> String {
-        let x = renderer.day_size_with_space * self.group + 1 + renderer.day_size_with_space;
+        let margin: usize = renderer.day_size_with_space + 1;
+        let x = renderer.day_size_with_space * self.group + margin;
         let y = renderer.font_size;
 
         format!(
@@ -122,8 +123,10 @@ impl SvgRenderer {
         let mut months: Vec<MonthText> = vec![];
         let mut day = last_day.clone() - YEAR;
 
+        let initial_day = day;
+
         while day <= last_day {
-            if day.weekday() == FIRST_DAY_OF_WEEK {
+            if day.weekday() == FIRST_DAY_OF_WEEK || day == initial_day {
                 group += 1;
                 result.push(vec![]);
 

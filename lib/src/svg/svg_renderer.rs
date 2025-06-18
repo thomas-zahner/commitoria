@@ -118,8 +118,7 @@ impl SvgRenderer {
     }
 
     fn render_at(&self, activity: &ContributionActivity, last_day: NaiveDate) -> String {
-        let mut group = 0;
-        let mut result: Vec<Vec<Data>> = vec![vec![]]; // todo: functional instead of this weird imperative style
+        let mut result: Vec<Vec<Data>> = vec![]; // todo: functional instead of this weird imperative style
         let mut months: Vec<MonthText> = vec![];
         let mut day = last_day.clone() - YEAR;
 
@@ -127,8 +126,6 @@ impl SvgRenderer {
 
         while day <= last_day {
             if day.weekday() == FIRST_DAY_OF_WEEK || day == initial_day {
-                group += 1;
-                result.push(vec![]);
 
                 let month = day.month0();
                 let is_new_month = match months.last() {
@@ -137,8 +134,10 @@ impl SvgRenderer {
                 };
 
                 if is_new_month {
-                    months.push(MonthText { group, month });
+                    months.push(MonthText { group: result.len(), month });
                 }
+
+                result.push(vec![]);
             }
 
             let date = NaiveDate::from_ymd_opt(
@@ -149,14 +148,16 @@ impl SvgRenderer {
             .unwrap();
 
             let count = activity.get(&date).unwrap_or(0);
-            result[group].push(Data { count, date });
+            let result_index = result.len() -1;
+            result[result_index].push(Data { count, date });
 
             day = day.checked_add_days(Days::new(1)).unwrap();
         }
 
+        let result_count = result.len();
         let content = self.render_week_rows(result) + "\n" + &self.render_text(months);
 
-        let width = (group + 2) * self.day_size_with_space + EXTRA_PADDING;
+        let width = (result_count + 1) * self.day_size_with_space + EXTRA_PADDING;
         let height = self.font_size + 7 * self.day_size_with_space + EXTRA_PADDING;
         self.wrap_svg(width, height, &content)
     }
@@ -186,7 +187,8 @@ impl SvgRenderer {
             .into_iter()
             .enumerate()
             .map(|(week, day_elements)| {
-                let x = self.day_size_with_space * week + 1 + self.day_size_with_space;
+                let margin = 1 + self.day_size_with_space;
+                let x = self.day_size_with_space * week + margin;
                 let y = self.font_size + EXTRA_PADDING;
                 let week_day_cells =
                     self.render_week_day_cells(day_elements, average_count_per_day);

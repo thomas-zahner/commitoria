@@ -76,6 +76,7 @@ pub struct SvgRenderer {
 
 const FIRST_DAY_OF_WEEK: Weekday = Weekday::Mon;
 const EXTRA_PADDING: usize = 6;
+const MARGIN_HORIZONTAL: usize = 6;
 
 const MONTH_NAMES: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -98,8 +99,7 @@ impl MonthText {
     }
 
     fn render(&self, renderer: &SvgRenderer) -> String {
-        let margin: usize = renderer.day_size_with_space + 1;
-        let x = renderer.day_size_with_space * self.group + margin;
+        let x = renderer.day_size_with_space * self.group + MARGIN_HORIZONTAL;
         let y = renderer.font_size;
 
         format!(
@@ -157,7 +157,7 @@ impl SvgRenderer {
         let result_count = result.len();
         let content = self.render_week_rows(result) + "\n" + &self.render_text(months);
 
-        let width = (result_count + 1) * self.day_size_with_space + EXTRA_PADDING;
+        let width = result_count * self.day_size_with_space + MARGIN_HORIZONTAL;
         let height = self.font_size + 7 * self.day_size_with_space + EXTRA_PADDING;
         self.wrap_svg(width, height, &content)
     }
@@ -187,8 +187,7 @@ impl SvgRenderer {
             .into_iter()
             .enumerate()
             .map(|(week, day_elements)| {
-                let margin = 1 + self.day_size_with_space;
-                let x = self.day_size_with_space * week + margin;
+                let x = self.day_size_with_space * week + MARGIN_HORIZONTAL;
                 let y = self.font_size + EXTRA_PADDING;
                 let week_day_cells =
                     self.render_week_day_cells(day_elements, average_count_per_day);

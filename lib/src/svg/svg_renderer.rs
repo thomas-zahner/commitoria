@@ -126,7 +126,6 @@ impl SvgRenderer {
 
         while day <= last_day {
             if day.weekday() == FIRST_DAY_OF_WEEK || day == initial_day {
-
                 let month = day.month0();
                 let is_new_month = match months.last() {
                     None => true,
@@ -134,7 +133,10 @@ impl SvgRenderer {
                 };
 
                 if is_new_month {
-                    months.push(MonthText { group: result.len(), month });
+                    months.push(MonthText {
+                        group: result.len(),
+                        month,
+                    });
                 }
 
                 result.push(vec![]);
@@ -148,7 +150,7 @@ impl SvgRenderer {
             .unwrap();
 
             let count = activity.get(&date).unwrap_or(0);
-            let result_index = result.len() -1;
+            let result_index = result.len() - 1;
             result[result_index].push(Data { count, date });
 
             day = day.checked_add_days(Days::new(1)).unwrap();

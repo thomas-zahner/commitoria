@@ -6,6 +6,7 @@ use chrono::{Datelike, Days, NaiveDate, Weekday};
 
 const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;
+const FONT_COLOUR_DEFAULT: &str = "#3a383f";
 const COLOUR_STRATEGY_DEFAULT: ColourStrategy = ColourStrategy::GitlabStrategy;
 
 #[derive(Default, Debug)]
@@ -15,6 +16,7 @@ pub struct Builder {
     pub colour_strategy: Option<String>,
     pub active_colour: Option<String>,
     pub inactive_colour: Option<String>,
+    pub font_colour: Option<String>,
 }
 
 impl Builder {
@@ -42,6 +44,9 @@ impl TryFrom<Builder> for SvgRenderer {
     fn try_from(value: Builder) -> Result<Self, Self::Error> {
         let font_size = value.font_size.unwrap_or(FONT_SIZE_DEFAULT);
         let cell_size = value.cell_size.unwrap_or(CELL_SIZE_DEFAULT);
+        let font_colour = value
+            .font_colour
+            .unwrap_or(String::from(FONT_COLOUR_DEFAULT));
         let colour_strategy = match value.colour_strategy.as_ref().map(|s| s.as_str()) {
             None => COLOUR_STRATEGY_DEFAULT,
             Some("GitlabStrategy") => ColourStrategy::GitlabStrategy,
@@ -63,6 +68,7 @@ impl TryFrom<Builder> for SvgRenderer {
             cell_size,
             colour_strategy,
             day_size_with_space,
+            font_colour,
         })
     }
 }
@@ -72,6 +78,7 @@ pub struct SvgRenderer {
     cell_size: usize,
     colour_strategy: ColourStrategy,
     day_size_with_space: usize,
+    font_colour: String,
 }
 
 const FIRST_DAY_OF_WEEK: Weekday = Weekday::Mon;
@@ -253,19 +260,19 @@ impl SvgRenderer {
             .user-contrib-text {{
                 font-size: {}px;
                 font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+                fill: {};
             }}
         </style>"#,
-            self.font_size
+            self.font_size, self.font_colour,
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
-
     use super::{Builder, SvgRenderer};
     use crate::{provider::github::Github, source::FixtureDataSource, svg::svg_renderer::Data};
+    use chrono::NaiveDate;
 
     #[tokio::test]
     async fn render_full() {
@@ -316,6 +323,51 @@ mod tests {
         let svg = get_renderer().render_week_rows(data);
         let fixture = read_fixture("fixtures/week_group.svg");
         assert_eq!(svg, fixture.trim());
+    }
+
+    #[test]
+    fn test_default_font_colour() {
+        let svg = get_renderer().get_style();
+        println!("{}", svg);
+        let expected = r#"<style>
+            :root {
+                --text-color-default: #3a383f;
+                --border-color-default: #dcdcde;
+            }
+
+            .user-contrib-text {
+                font-size: 11px;
+                font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+                fill: #3a383f;
+            }
+        </style>"#;
+        assert_eq!(svg, expected.trim());
+    }
+
+    #[test]
+    fn test_custom_font_colour() {
+        let renderer = Builder {
+            font_colour: Some("#FF4500".to_string()),
+            ..Default::default()
+        }
+        .build()
+        .unwrap();
+
+        let svg = renderer.get_style();
+        println!("{}", svg);
+        let expected = r#"<style>
+            :root {
+                --text-color-default: #3a383f;
+                --border-color-default: #dcdcde;
+            }
+
+            .user-contrib-text {
+                font-size: 11px;
+                font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+                fill: #FF4500;
+            }
+        </style>"#;
+        assert_eq!(svg, expected.trim());
     }
 
     fn get_renderer() -> SvgRenderer {

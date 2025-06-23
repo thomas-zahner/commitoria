@@ -8,6 +8,7 @@
             .user-contrib-text {
                 font-size: 11px;
                 font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+                fill: #3a383f;
             }
         </style>
     <g transform="translate(6, 17)" data-testid="user-contrib-cell-group">

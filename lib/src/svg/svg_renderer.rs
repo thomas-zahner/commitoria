@@ -1,12 +1,12 @@
 use super::contribution_colour::ContributionInfo;
-use super::rgba::StringToRgbaError;
+use super::rgba::{Rgba, StringToRgbaError};
 use crate::types::ContributionActivity;
 use crate::{svg::contribution_colour::ColourStrategy, types::YEAR};
 use chrono::{Datelike, Days, NaiveDate, Weekday};
 
 const FONT_SIZE_DEFAULT: usize = 11;
 const CELL_SIZE_DEFAULT: usize = 14;
-const FONT_COLOUR_DEFAULT: &str = "#3a383f";
+const FONT_COLOUR_DEFAULT: Rgba = Rgba::new(58, 56, 63, 255);
 const COLOUR_STRATEGY_DEFAULT: ColourStrategy = ColourStrategy::GitlabStrategy;
 
 #[derive(Default, Debug)]
@@ -44,9 +44,15 @@ impl TryFrom<Builder> for SvgRenderer {
     fn try_from(value: Builder) -> Result<Self, Self::Error> {
         let font_size = value.font_size.unwrap_or(FONT_SIZE_DEFAULT);
         let cell_size = value.cell_size.unwrap_or(CELL_SIZE_DEFAULT);
-        let font_colour = value
-            .font_colour
-            .unwrap_or(String::from(FONT_COLOUR_DEFAULT));
+
+        let font_colour = match value.font_colour {
+            None => FONT_COLOUR_DEFAULT,
+            Some(colour) => match Rgba::try_from(colour) {
+                Ok(result) => result,
+                Err(err) => Err(BuilderError::InvalidRgbaValue(err))?,
+            },
+        };
+
         let colour_strategy = match value.colour_strategy.as_ref().map(|s| s.as_str()) {
             None => COLOUR_STRATEGY_DEFAULT,
             Some("GitlabStrategy") => ColourStrategy::GitlabStrategy,
@@ -78,7 +84,7 @@ pub struct SvgRenderer {
     cell_size: usize,
     colour_strategy: ColourStrategy,
     day_size_with_space: usize,
-    font_colour: String,
+    font_colour: Rgba,
 }
 
 const FIRST_DAY_OF_WEEK: Weekday = Weekday::Mon;
@@ -228,7 +234,7 @@ impl SvgRenderer {
                 let y = self.day_size_with_space * ((day.date.weekday().num_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let data_date = day.date.to_string();
                 let colour = self.colour_strategy.get_colour(ContributionInfo {
-                    average_count_per_day ,
+                    average_count_per_day,
                     count_today: day.count,
                 });
 
@@ -328,7 +334,6 @@ mod tests {
     #[test]
     fn test_default_font_colour() {
         let svg = get_renderer().get_style();
-        println!("{}", svg);
         let expected = r#"<style>
             :root {
                 --text-color-default: #3a383f;
@@ -338,7 +343,7 @@ mod tests {
             .user-contrib-text {
                 font-size: 11px;
                 font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-                fill: #3a383f;
+                fill: #3a383fff;
             }
         </style>"#;
         assert_eq!(svg, expected.trim());
@@ -354,7 +359,6 @@ mod tests {
         .unwrap();
 
         let svg = renderer.get_style();
-        println!("{}", svg);
         let expected = r#"<style>
             :root {
                 --text-color-default: #3a383f;
@@ -364,7 +368,7 @@ mod tests {
             .user-contrib-text {
                 font-size: 11px;
                 font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-                fill: #FF4500;
+                fill: #ff4500ff;
             }
         </style>"#;
         assert_eq!(svg, expected.trim());

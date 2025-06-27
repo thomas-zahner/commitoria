@@ -47,10 +47,7 @@ impl TryFrom<Builder> for SvgRenderer {
 
         let font_colour = match value.font_colour {
             None => FONT_COLOUR_DEFAULT,
-            Some(colour) => match Rgba::try_from(colour) {
-                Ok(result) => result,
-                Err(err) => Err(BuilderError::InvalidRgbaValue(err))?,
-            },
+            Some(colour) => Rgba::try_from(colour).map_err(BuilderError::InvalidRgbaValue)?,
         };
 
         let colour_strategy = match value.colour_strategy.as_ref().map(|s| s.as_str()) {

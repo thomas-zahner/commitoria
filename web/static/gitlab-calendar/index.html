@@ -7,10 +7,9 @@
     </head>
     <body>
         <h1>Commitoria</h1>
-        <form action="/calendar" onsubmit="onSubmit(event)">
+        <form action="/calendar" class="configuration-form" onsubmit="onSubmit(event)">
             <h2>Sources</h2>
             <input type="text" name="github" placeholder="GitHub username" />
-            <br />
 
             <h3>Repositories</h3>
             <p>Add repositories by username and URL or type.</p>
@@ -31,7 +30,6 @@
                 placeholder="Font size in pixels"
                 min="3"
             />
-            <br />
 
             <input
                 type="number"
@@ -39,7 +37,6 @@
                 placeholder="Cell size in pixels"
                 min="3"
             />
-            <br />
 
             <select
                 id="colour_strategy"
@@ -51,9 +48,8 @@
                     Interpolated colour scheme
                 </option>
             </select>
-            <br />
 
-            <label id="inactive_colour">
+            <label id="inactive_colour" class="hidden">
                 Inactive colour
                 <input
                     value="#f6f5f4"
@@ -61,9 +57,8 @@
                     placeholder="Inactive colour"
                 />
             </label>
-            <br />
 
-            <label id="active_colour">
+            <label id="active_colour" class="hidden">
                 Active colour
                 <input
                     value="#c061cb"
@@ -71,8 +66,14 @@
                     placeholder="Active colour"
                 />
             </label>
-            <br />
-
+            <label for="font_colour">
+                Font colour
+                <input
+                        type="color"
+                        id="font_colour"
+                        value="#c061cb"
+                        name="font_colour"/>
+            </label>
             <input type="submit" value="Show activity" />
         </form>
 
@@ -81,7 +82,7 @@
                 >Powered by
                 <a href="https://github.com/thomas-zahner/commitoria/"
                     >Commitoria</a
-                ></small
+                ></small>
         </footer>
 
         <template id="repository-type">

@@ -10,6 +10,7 @@ pub(crate) struct CalendarQuery {
     active_colour: Option<String>,
     inactive_colour: Option<String>,
     repositories: Option<Vec<String>>,
+    font_colour: Option<String>,
 }
 
 pub(crate) struct Repositories {
@@ -54,6 +55,7 @@ impl From<CalendarQuery> for svg_renderer::Builder {
             font_size: query.font_size,
             active_colour: query.active_colour,
             inactive_colour: query.inactive_colour,
+            font_colour: query.font_colour
         }
     }
 }

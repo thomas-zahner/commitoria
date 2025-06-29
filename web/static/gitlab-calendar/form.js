@@ -9,14 +9,14 @@ function colourStrategyChange(e) {
   const activeColourInput = activeColour.querySelector("input");
 
   if (colourStrategy.value === "InterpolationStrategy") {
-    inactiveColour.style.display = "unset";
-    activeColour.style.display = "unset";
+    inactiveColour.classList.remove('hidden');
+    activeColour.classList.remove('hidden');
 
     inactiveColourInput.setAttribute("name", "inactive_colour");
     activeColourInput.setAttribute("name", "active_colour");
   } else {
-    inactiveColour.style.display = "none";
-    activeColour.style.display = "none";
+    inactiveColour.classList.add('hidden');
+    activeColour.classList.add('hidden');
 
     inactiveColourInput.removeAttribute("name");
     activeColourInput.removeAttribute("name");

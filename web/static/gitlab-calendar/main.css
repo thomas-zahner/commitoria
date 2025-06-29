@@ -3,10 +3,6 @@ body {
     font-family: "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-form {
-    margin-top: 3em;
-}
-
 input,
 select {
     padding: 10px;
@@ -69,11 +65,6 @@ input[type="submit"] {
     }
 }
 
-#inactive_colour,
-#active_colour {
-    display: none;
-}
-
 footer {
     position: fixed;
     bottom: 0.5em;
@@ -84,4 +75,36 @@ a {
     color: black;
     font-weight: bold;
     text-decoration: none;
+}
+
+.configuration-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    & {
+        label, select, input{
+            box-sizing: content-box;
+            max-width: 15rem;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type=number],
+        input[type=text],
+        select{
+            width: 100%;
+        }
+
+        label:has(>input[type=color]){
+            display:flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width:100%;
+
+            &.hidden{
+                display: none;
+            }
+        }
+    }
 }

@@ -7,7 +7,11 @@
     </head>
     <body>
         <h1>Commitoria</h1>
-        <form action="/calendar" class="configuration-form" onsubmit="onSubmit(event)">
+        <form
+            action="/calendar"
+            class="configuration-form"
+            onsubmit="onSubmit(event)"
+        >
             <h2>Sources</h2>
             <input type="text" name="github" placeholder="GitHub username" />
 
@@ -69,27 +73,31 @@
             <label for="font_colour">
                 Font colour
                 <input
-                        type="color"
-                        id="font_colour"
-                        value="#c061cb"
-                        name="font_colour"/>
+                    type="color"
+                    id="font_colour"
+                    value="#c061cb"
+                    name="font_colour"
+                />
             </label>
             <input type="submit" value="Show activity" />
         </form>
 
         <footer>
-            <small id="footer"
-                >Powered by
-                <a href="https://github.com/thomas-zahner/commitoria/"
-                    >Commitoria</a
-                ></small>
+            <small id="footer">
+                Powered by
+                <a href="https://github.com/thomas-zahner/commitoria/">
+                    Commitoria
+                </a>
+            </small>
         </footer>
 
         <template id="repository-type">
             <select data-form-name="kind">
-              <option value="BareGitRepository">Bare Git repository</option>
-              <option value="Gitea">Gitea (codeberg.org, Forgejo)</option>
-              <option value="Gitlab">GitLab (most prominently https://gitlab.com)</option>
+                <option value="BareGitRepository">Bare Git repository</option>
+                <option value="Gitea">Gitea (codeberg.org, Forgejo)</option>
+                <option value="Gitlab">
+                    GitLab (most prominently https://gitlab.com)
+                </option>
             </select>
         </template>
     </body>

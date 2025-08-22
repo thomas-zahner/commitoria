@@ -112,8 +112,8 @@ mod tests {
     async fn contributions_real_forgejo() {
         let result = Gitea::fetch(
             ReqwestDataSource {},
-            "kirylkaveryn".into(),
-            "https://git.omaps.dev".try_into().unwrap(),
+            "muppeth".into(),
+            "https://git.disroot.org".try_into().unwrap(),
         )
         .await;
         assert!(result.is_ok());

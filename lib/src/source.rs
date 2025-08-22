@@ -17,6 +17,7 @@ impl DataSource for ReqwestDataSource {
             .error_for_status()
             .map_err(|e| match e.status() {
                 Some(StatusCode::NOT_FOUND) => Error::UserNotFound,
+                Some(StatusCode::FORBIDDEN) => Error::UserNotFound, // GitLab now redirects to a forbidden page
                 _ => e.into(),
             })?
             .text()

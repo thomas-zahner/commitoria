@@ -128,7 +128,7 @@ impl SvgRenderer {
     }
 
     fn render_at(&self, activity: &ContributionActivity, last_day: NaiveDate) -> String {
-        let mut result: Vec<Vec<Data>> = vec![]; // todo: functional instead of this weird imperative style
+        let mut result: Vec<Vec<Data>> = vec![]; // TODO: functional instead of this weird imperative style
         let mut months: Vec<MonthText> = vec![];
         let mut day = last_day.clone() - YEAR;
 
@@ -218,7 +218,7 @@ impl SvgRenderer {
     fn render_week_day_cells(&self, days: Vec<Data>, average_count_per_day: f32) -> String {
         let cell_size: usize = self.cell_size;
         const CELL_RADIUS: usize = 2;
-        const FIST_DAY_OF_WEEK: usize = 0; // todo
+        const FIST_DAY_OF_WEEK: usize = 0; // TODO: make configurable?
 
         days.into_iter()
             .map(|day| {
@@ -229,13 +229,14 @@ impl SvgRenderer {
                 });
 
                 let y = self.day_size_with_space * ((day.date.weekday().num_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
-                let data_date = day.date.to_string();
                 let colour = self.colour_strategy.get_colour(ContributionInfo {
                     average_count_per_day,
                     count_today: day.count,
                 });
 
-                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{cell_size}" height="{cell_size}" fill="{colour}" data-hover-info="{hover_info}" data-date="{data_date}" class="user-contrib-cell has-tooltip"></rect>"#)
+                let title = format!("{hover_info} on {}", day.date); // TODO: i18n date according to request headers?
+                let content = format!("<title>{}</title>", title);
+                format!(r#"<rect x="0" y="{y}" rx="{CELL_RADIUS}" ry="{CELL_RADIUS}" width="{cell_size}" height="{cell_size}" fill="{colour}" class="user-contrib-cell has-tooltip">{content}</rect>"#)
             })
             .collect::<Vec<_>>()
             .join("\n")

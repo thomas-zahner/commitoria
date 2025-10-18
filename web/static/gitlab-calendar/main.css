@@ -51,12 +51,6 @@ input[type="submit"] {
     text-align: center;
 }
 
-#popup {
-    position: absolute;
-    display: none;
-    background: gold;
-}
-
 #svg-url-section {
     margin-top: 2em;
 
@@ -77,32 +71,34 @@ a {
     text-decoration: none;
 }
 
-.configuration-form{
+.configuration-form {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     & {
-        label, select, input{
+        label,
+        select,
+        input {
             box-sizing: content-box;
             max-width: 15rem;
             margin-bottom: 0.5rem;
         }
 
-        input[type=number],
-        input[type=text],
-        select{
+        input[type="number"],
+        input[type="text"],
+        select {
             width: 100%;
         }
 
-        label:has(>input[type=color]){
-            display:flex;
+        label:has(> input[type="color"]) {
+            display: flex;
             flex-direction: row;
             justify-content: space-between;
             align-items: center;
-            width:100%;
+            width: 100%;
 
-            &.hidden{
+            &.hidden {
                 display: none;
             }
         }

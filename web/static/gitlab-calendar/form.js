@@ -23,7 +23,11 @@ function colourStrategyChange(e) {
   }
 }
 
-function addRepositoryLine() {
+function addBareRepositoryLine() {
+  repositories.appendChild(createRepositoryLine());
+}
+
+function createRepositoryLine() {
   const repository = document.createElement("div");
 
   const username = document.createElement("input");
@@ -52,7 +56,7 @@ function addRepositoryLine() {
   repository.appendChild(type);
   repository.appendChild(deleteButton);
 
-  repositories.appendChild(repository);
+  return repository;
 }
 
 function onSubmit(event) {

@@ -55,15 +55,21 @@
         {
           default = pkgs.rustPlatform.buildRustPackage {
             name = "commitoria-web";
+            src = ./.;
+
             meta.mainProgram = "web";
-            srcs = [
-              ./lib
-              ./web
-            ];
-            sourceRoot = "./web";
-            cargoDeps = pkgs.rustPlatform.importCargoLock {
-              lockFile = ./web/Cargo.lock;
+            cargoTestFlags = "--all-features";
+            cargoBuildFlags = "--package web --workspace";
+
+            cargoLock = {
+              lockFile = ./Cargo.lock;
             };
+
+            cargoCheckHook = ''
+              echo test
+              exit 1
+            '';
+
             nativeBuildInputs = [ pkgs.pkg-config ];
             buildInputs = [ pkgs.openssl ];
           };

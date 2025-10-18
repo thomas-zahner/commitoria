@@ -1,9 +1,9 @@
 <g transform="translate(6, 17)" data-testid="user-contrib-cell-group">
-<rect x="0" y="0" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-02" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="16" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-03" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="32" rx="2" ry="2" width="14" height="14" fill="#d2dcffff" data-hover-info="1 contribution" data-date="2024-12-04" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="48" rx="2" ry="2" width="14" height="14" fill="#d2dcffff" data-hover-info="2 contributions" data-date="2024-12-05" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="64" rx="2" ry="2" width="14" height="14" fill="#7992f5ff" data-hover-info="17 contributions" data-date="2024-12-06" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="80" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-07" class="user-contrib-cell has-tooltip"></rect>
-<rect x="0" y="96" rx="2" ry="2" width="14" height="14" fill="#ececefff" data-hover-info="No contributions" data-date="2024-12-08" class="user-contrib-cell has-tooltip"></rect>
+<rect x="0" y="0" rx="2" ry="2" width="14" height="14" fill="#ececefff" class="user-contrib-cell has-tooltip"><title>No contributions on 2024-12-02</title></rect>
+<rect x="0" y="16" rx="2" ry="2" width="14" height="14" fill="#ececefff" class="user-contrib-cell has-tooltip"><title>No contributions on 2024-12-03</title></rect>
+<rect x="0" y="32" rx="2" ry="2" width="14" height="14" fill="#d2dcffff" class="user-contrib-cell has-tooltip"><title>1 contribution on 2024-12-04</title></rect>
+<rect x="0" y="48" rx="2" ry="2" width="14" height="14" fill="#d2dcffff" class="user-contrib-cell has-tooltip"><title>2 contributions on 2024-12-05</title></rect>
+<rect x="0" y="64" rx="2" ry="2" width="14" height="14" fill="#7992f5ff" class="user-contrib-cell has-tooltip"><title>17 contributions on 2024-12-06</title></rect>
+<rect x="0" y="80" rx="2" ry="2" width="14" height="14" fill="#ececefff" class="user-contrib-cell has-tooltip"><title>No contributions on 2024-12-07</title></rect>
+<rect x="0" y="96" rx="2" ry="2" width="14" height="14" fill="#ececefff" class="user-contrib-cell has-tooltip"><title>No contributions on 2024-12-08</title></rect>
 </g>

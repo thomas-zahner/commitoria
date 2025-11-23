@@ -25,6 +25,8 @@ Commitoria enables aggregation and visualisation across multiple platforms,
 allowing you to see the bigger picture.
 A picture that is closer to reality.
 
+Take a look at [the blog post](https://thomaszahner.ch/posts/commitoria/) for more information.
+
 ## State
 
 The supported platforms can be found at the very top of the README.

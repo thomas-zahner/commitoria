@@ -6,4 +6,5 @@ pub use error::Error;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
+#[cfg(feature = "svg")]
 pub(crate) const YEAR: chrono::Months = chrono::Months::new(12);

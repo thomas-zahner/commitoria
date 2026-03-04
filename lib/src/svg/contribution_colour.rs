@@ -38,10 +38,10 @@ impl ColourStrategy {
 ///
 /// Formula: `-1 / ((1 / a) * x + 1) + 1` which can be simplified as `x / (x + a)`
 fn f(x: f32, a: f32) -> f32 {
-    let divisor = x as f32 + a;
+    let divisor = x + a;
     match divisor {
         0.0 => 0.0,
-        _ => x as f32 / divisor,
+        _ => x / divisor,
     }
 }
 

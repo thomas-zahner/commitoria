@@ -1,4 +1,4 @@
-use super::{parse_date, Error};
+use super::{Error, parse_date};
 use crate::{source::DataSource, types::ContributionActivity, types::Result};
 use regex::Regex;
 use scraper::{Html, Selector};
@@ -74,7 +74,7 @@ mod tests {
             Some(0)
         );
         assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 05, 19).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 5, 19).unwrap()),
             Some(1)
         );
         assert_eq!(result.contribution_count(), 191);

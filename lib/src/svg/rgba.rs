@@ -69,7 +69,7 @@ impl TryFrom<String> for Rgba {
             u8::from_str_radix(value, 16)
         }
 
-        if value.get(0..1) == Some(&"#") {
+        if value.get(0..1) == Some("#") {
             value = value[1..].into();
         }
 

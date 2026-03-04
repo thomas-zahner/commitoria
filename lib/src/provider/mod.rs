@@ -11,7 +11,7 @@ pub mod gitlab;
 
 /// Try to parse a `&str` to a `NaiveDate`
 fn parse_date(date: &str) -> Result<NaiveDate> {
-    const DATE_DESCRIPTION: &'static str = "%Y-%m-%d";
+    const DATE_DESCRIPTION: &str = "%Y-%m-%d";
 
     NaiveDate::parse_from_str(date, DATE_DESCRIPTION)
         .map_err(|e| Error::UnableToParseDate(e.to_string()))

@@ -4,7 +4,7 @@ use std::{
     ops::{Add, AddAssign},
 };
 
-use serde::{ser::SerializeMap, Serialize, Serializer};
+use serde::{Serialize, Serializer, ser::SerializeMap};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ContributionActivity(BTreeMap<NaiveDate, usize>);
@@ -22,13 +22,19 @@ impl Serialize for ContributionActivity {
     }
 }
 
+impl Default for ContributionActivity {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ContributionActivity {
     pub fn new() -> Self {
         Self(BTreeMap::new())
     }
 
     pub fn get(&self, date: &NaiveDate) -> Option<usize> {
-        self.0.get(date).map(|c| c.clone())
+        self.0.get(date).copied()
     }
 
     pub fn active_days(&self) -> usize {
@@ -36,7 +42,7 @@ impl ContributionActivity {
     }
 
     pub fn contribution_count(&self) -> usize {
-        self.0.iter().map(|(_, count)| count).sum()
+        self.0.values().sum()
     }
 }
 
@@ -77,14 +83,14 @@ mod tests {
 
     #[test]
     fn aggregate() {
-        let first = NaiveDate::from_ymd_opt(2024, 01, 01).unwrap();
-        let second = NaiveDate::from_ymd_opt(2024, 01, 02).unwrap();
+        let first = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
+        let second = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
         let activity = ContributionActivity(BTreeMap::from([(first, 1), (second, 2)]))
             + ContributionActivity(BTreeMap::from([(first, 3)]));
 
         assert_eq!(activity.get(&first), Some(4));
         assert_eq!(activity.get(&second), Some(2));
-        let third = NaiveDate::from_ymd_opt(2024, 01, 03).unwrap();
+        let third = NaiveDate::from_ymd_opt(2024, 1, 3).unwrap();
         assert_eq!(activity.get(&third), None);
     }
 }

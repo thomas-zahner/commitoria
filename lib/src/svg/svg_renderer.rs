@@ -50,7 +50,7 @@ impl TryFrom<Builder> for SvgRenderer {
             Some(colour) => Rgba::try_from(colour).map_err(BuilderError::InvalidRgbaValue)?,
         };
 
-        let colour_strategy = match value.colour_strategy.as_ref().map(|s| s.as_str()) {
+        let colour_strategy = match value.colour_strategy.as_deref() {
             None => COLOUR_STRATEGY_DEFAULT,
             Some("GitlabStrategy") => ColourStrategy::GitlabStrategy,
             Some("InterpolationStrategy") => match (value.inactive_colour, value.active_colour) {
@@ -130,7 +130,7 @@ impl SvgRenderer {
     fn render_at(&self, activity: &ContributionActivity, last_day: NaiveDate) -> String {
         let mut result: Vec<Vec<Data>> = vec![]; // TODO: functional instead of this weird imperative style
         let mut months: Vec<MonthText> = vec![];
-        let mut day = last_day.clone() - YEAR;
+        let mut day = last_day - YEAR;
 
         let initial_day = day;
 
@@ -154,7 +154,7 @@ impl SvgRenderer {
 
             let date = NaiveDate::from_ymd_opt(
                 day.year(),
-                (day.month() as u8).try_into().unwrap(),
+                (day.month() as u8).into(),
                 day.day(),
             )
             .unwrap();
@@ -195,7 +195,8 @@ impl SvgRenderer {
             .sum::<usize>() as f32
             / day_count as f32;
 
-        let content = result
+        
+        result
             .into_iter()
             .enumerate()
             .map(|(week, day_elements)| {
@@ -211,8 +212,7 @@ impl SvgRenderer {
                 )
             })
             .collect::<Vec<_>>()
-            .join("\n");
-        content
+            .join("\n")
     }
 
     fn render_week_day_cells(&self, days: Vec<Data>, average_count_per_day: f32) -> String {
@@ -222,11 +222,11 @@ impl SvgRenderer {
 
         days.into_iter()
             .map(|day| {
-                let hover_info = format!("{}", match day.count {
+                let hover_info = (match day.count {
                     0 => "No contributions".to_owned(),
                     1 => "1 contribution".to_owned(),
                     i => format!("{} contributions", i),
-                });
+                }).to_string();
 
                 let y = self.day_size_with_space * ((day.date.weekday().num_days_from_monday() as usize + 7 - FIST_DAY_OF_WEEK) % 7);
                 let colour = self.colour_strategy.get_colour(ContributionInfo {
@@ -247,7 +247,7 @@ impl SvgRenderer {
             r#"<g direction="ltr">{}</g>"#,
             months
                 .iter()
-                .map(|month| month.render(&self))
+                .map(|month| month.render(self))
                 .collect::<Vec<_>>()
                 .join("\n")
         )

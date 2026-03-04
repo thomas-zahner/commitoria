@@ -1,7 +1,7 @@
 use super::Result;
 use crate::types::{ContributionActivity, Error, YEAR};
 use chrono::{DateTime, NaiveDate};
-use git2::{build::RepoBuilder, FetchOptions, RemoteCallbacks, Sort};
+use git2::{FetchOptions, RemoteCallbacks, Sort, build::RepoBuilder};
 use std::{
     collections::BTreeMap,
     path::PathBuf,
@@ -84,7 +84,7 @@ impl Repository {
 
         let mut result = BTreeMap::new();
 
-        for rev in revwalk.into_iter() {
+        for rev in revwalk {
             let rev = *rev.as_ref()?;
             let commit = repository.find_commit(rev)?;
             let commit_time = DateTime::from_timestamp(commit.time().seconds(), 0)
@@ -117,7 +117,7 @@ mod tests {
                 .unwrap(),
         )
         .await;
-        let since = NaiveDate::from_ymd_opt(2024, 01, 01).unwrap();
+        let since = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
 
         let result = repository
             .unwrap()

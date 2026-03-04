@@ -46,17 +46,17 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 01, 22).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 1, 22).unwrap()),
             Some(1)
         );
 
         assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 02, 04).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 2, 4).unwrap()),
             Some(2)
         );
 
         assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 01, 01).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 1, 1).unwrap()),
             None
         );
         assert_eq!(result.contribution_count(), 21);

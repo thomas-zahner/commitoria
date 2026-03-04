@@ -29,7 +29,7 @@ impl TryFrom<CalendarQuery> for ParsedQuery {
             .as_ref()
             .unwrap_or(&Vec::new())
             .iter()
-            .map(|u| serde_json::from_str(&u))
+            .map(|u| serde_json::from_str(u))
             .collect::<serde_json::Result<Vec<RepositoryInfo>>>()?;
 
         let github = value.github.clone();
@@ -55,7 +55,7 @@ impl From<CalendarQuery> for svg_renderer::Builder {
             font_size: query.font_size,
             active_colour: query.active_colour,
             inactive_colour: query.inactive_colour,
-            font_colour: query.font_colour
+            font_colour: query.font_colour,
         }
     }
 }

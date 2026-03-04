@@ -64,7 +64,7 @@ impl Gitea {
             .attr("data-heatmap-data")
             .ok_or(Error::AttributeMissing)?;
 
-        let parsed: Vec<HeatmapDataPoint> = serde_json::from_str(&json)?;
+        let parsed: Vec<HeatmapDataPoint> = serde_json::from_str(json)?;
         parsed.try_into()
     }
 }
@@ -85,12 +85,12 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 07, 09).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 7, 9).unwrap()),
             Some(6)
         );
 
         assert_eq!(
-            result.get(&NaiveDate::from_ymd_opt(2024, 07, 29).unwrap()),
+            result.get(&NaiveDate::from_ymd_opt(2024, 7, 29).unwrap()),
             Some(1)
         );
 
